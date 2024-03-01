@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,13 +26,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
 import java.lang.NullPointerException
 import java.util.Locale
@@ -47,6 +49,7 @@ import java.util.Locale
  var longitudeStr : Float = 0.0f
  var latitudeStr : Float = 0.0f
  var fetchAddress : String = ""
+ var isGPSOn : Boolean = false
 
 
  class MainActivity : ComponentActivity() {
@@ -88,6 +91,8 @@ import java.util.Locale
                 Manifest.permission.ACCESS_COARSE_LOCATION
             )
         )
+
+
         setContent {
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
@@ -96,12 +101,13 @@ import java.util.Locale
                     color = MaterialTheme.colorScheme.background
                 ) {
                     PanicButton()
+                    initGPS()
                 }
             }
         }
     }
 
-     fun StartLocationUpdate(){
+     private fun startLocationUpdate(){
          settingsClient?.checkLocationSettings(locationSettingRequest!!)
              ?.addOnSuccessListener {
                  Log.d("startlocationupdate","Location Settings Ok")
@@ -116,7 +122,7 @@ import java.util.Locale
              }
      }
 
-     fun stopLocationUpdate(){
+     private fun stopLocationUpdate(){
          try{
              fusedLocationProviderClient?.removeLocationUpdates(locationCallback!!)
                  ?.addOnCompleteListener {task ->
@@ -127,7 +133,7 @@ import java.util.Locale
          }
      }
 
-     fun getLocation(locationResult : LocationResult){
+     private fun getLocation(locationResult : LocationResult){
          location = locationResult.lastLocation
 
          Log.d("Location","latitude ${location?.latitude}")
@@ -156,11 +162,23 @@ import java.util.Locale
          fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
          settingsClient = LocationServices.getSettingsClient(this)
          locationCallback = object : LocationCallback() {
-             override fun onLocationResult(p0: LocationResult) {
-                 super.onLocationResult(p0)
-                 getLocation(locationResult = p0)
+             override fun onLocationResult(locationResult: LocationResult) {
+                 super.onLocationResult(locationResult)
+                 getLocation(locationResult = locationResult)
              }
          }
+
+         locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
+             .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+             .setMinUpdateIntervalMillis(500)
+             .setMinUpdateDistanceMeters(1f)
+             .setWaitForAccurateLocation(true)
+             .build()
+
+         val builder : LocationSettingsRequest.Builder = LocationSettingsRequest.Builder()
+         builder.addLocationRequest(locationRequest!!)
+         locationSettingRequest = builder.build()
+         startLocationUpdate()
      }
 }
 
@@ -168,13 +186,18 @@ import java.util.Locale
 fun PanicButton() {
     val context : Context = LocalContext.current
 
-   Button(onClick = { turnOnGPS(context) }) {
+   Button(
+       onClick = {
+           turnOnGPS(context)
+           isGPSOn = true
+       }
+   ) {
        Text(text = "Panic Button")
    }
 }
 
 
-fun turnOnGPS(context : Context) : Boolean{
+fun turnOnGPS(context : Context){
     // in here we check a permission again, if a permission granted we turnon a gps automatic
     // check a location
     var isGPSOn = false
@@ -192,8 +215,10 @@ fun turnOnGPS(context : Context) : Boolean{
             isGPSOn = true
         }
     }
-    return isGPSOn
 }
+
+
+
 
 
 @Preview(showBackground = true)
