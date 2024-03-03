@@ -15,12 +15,15 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,10 +49,7 @@ import java.util.Locale
  var locationSettingRequest : LocationSettingsRequest? = null
  var latitude : Double = 0.0
  var longitude : Double = 0.0
- var longitudeStr : Float = 0.0f
- var latitudeStr : Float = 0.0f
  var fetchAddress : String = ""
- var isGPSOn : Boolean = false
 
 
  class MainActivity : ComponentActivity() {
@@ -100,8 +100,7 @@ import java.util.Locale
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PanicButton()
-                    initGPS()
+                    PanicButton(initGPS())
                 }
             }
         }
@@ -123,6 +122,7 @@ import java.util.Locale
      }
 
      private fun stopLocationUpdate(){
+         // use for stop a gps
          try{
              fusedLocationProviderClient?.removeLocationUpdates(locationCallback!!)
                  ?.addOnCompleteListener {task ->
@@ -140,8 +140,10 @@ import java.util.Locale
          Log.d("Location","longitude ${location?.longitude}")
          Log.d("Location","altitude ${location?.altitude}")
 
-         var s_lat = String.format(Locale.ROOT,"%.6f", location?.latitude)
-         var s_log = String.format(Locale.ROOT,"%.6f", location?.longitude)
+         val s_lat = String.format(Locale.ROOT,"%.6f", location?.latitude)
+         val s_log = String.format(Locale.ROOT,"%.6f", location?.longitude)
+
+         Toast.makeText(this,"Latitude : $s_lat, Longitude : $s_log",Toast.LENGTH_SHORT).show()
 
          latitude = location?.latitude!!
          longitude = location?.longitude!!
@@ -158,7 +160,7 @@ import java.util.Locale
          }
      }
 
-     fun initGPS(){
+     private fun initGPS(){
          fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
          settingsClient = LocationServices.getSettingsClient(this)
          locationCallback = object : LocationCallback() {
@@ -180,27 +182,50 @@ import java.util.Locale
          locationSettingRequest = builder.build()
          startLocationUpdate()
      }
+
+     override fun onDestroy() {
+         super.onDestroy()
+         // stop location if a activity destroy
+         stopLocationUpdate()
+     }
 }
 
 @Composable
-fun PanicButton() {
+fun PanicButton(initGps : Unit) {
     val context : Context = LocalContext.current
 
-   Button(
-       onClick = {
-           turnOnGPS(context)
-           isGPSOn = true
-       }
-   ) {
-       Text(text = "Panic Button")
-   }
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            onClick = {
+                turnOnGPS(context,initGps)
+            }
+        ) {
+            Text(text = "Panic Button")
+        }
+    }
+}
+
+fun turnOnGPS(context : Context,initGps: Unit){
+    // if condition, if a gps turn on, init a gps, if not turn on a gps first and run a initgps
+    val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+    if(locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+        // if a gps active we init a gps
+        initGps
+    } else {
+        // request a gps turn on
+        requestOnGPS(context, initGps)
+    }
+
 }
 
 
-fun turnOnGPS(context : Context){
+fun requestOnGPS(context : Context, initGps: Unit){
     // in here we check a permission again, if a permission granted we turnon a gps automatic
     // check a location
-    var isGPSOn = false
     if(ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
         // if a permission granted, we turn on a gps
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -212,19 +237,17 @@ fun turnOnGPS(context : Context){
             val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)
-            isGPSOn = true
         }
+
+        initGps
     }
 }
 
 
-
-
-
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun GreetingPreview() {
+fun MainPreview() {
     MyApplicationTheme {
-        PanicButton()
+        PanicButton(Unit)
     }
 }
