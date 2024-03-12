@@ -5,8 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
+import android.location.Geocoder.GeocodeListener
 import android.location.Location
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
@@ -15,6 +17,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +41,10 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.lang.NullPointerException
 import java.util.Locale
 
@@ -92,7 +99,6 @@ import java.util.Locale
             )
         )
 
-
         setContent {
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
@@ -100,87 +106,22 @@ import java.util.Locale
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PanicButton(initGPS())
+                    PanicButton()
                 }
             }
         }
     }
-
-     private fun startLocationUpdate(){
-         settingsClient?.checkLocationSettings(locationSettingRequest!!)
-             ?.addOnSuccessListener {
-                 Log.d("startlocationupdate","Location Settings Ok")
-                 if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-                     return@addOnSuccessListener;
-                 }
-                 fusedLocationProviderClient?.requestLocationUpdates(locationRequest!!, locationCallback!!, Looper.myLooper())
-             }
-
-             ?.addOnFailureListener { fail ->
-                 Log.e("OnStartLocationUpdate", "OnStartLocationUpdateError")
-             }
-     }
 
      private fun stopLocationUpdate(){
          // use for stop a gps
          try{
              fusedLocationProviderClient?.removeLocationUpdates(locationCallback!!)
                  ?.addOnCompleteListener {task ->
-                     Log.d("StopLocationUpdate", "StopLocationUpdate")
+                     Log.d("StopLocationUpdate", task.toString())
                  }
          } catch (e : NullPointerException){
              Log.e("StopLocationUpdateError", e.toString())
          }
-     }
-
-     private fun getLocation(locationResult : LocationResult){
-         location = locationResult.lastLocation
-
-         Log.d("Location","latitude ${location?.latitude}")
-         Log.d("Location","longitude ${location?.longitude}")
-         Log.d("Location","altitude ${location?.altitude}")
-
-         val s_lat = String.format(Locale.ROOT,"%.6f", location?.latitude)
-         val s_log = String.format(Locale.ROOT,"%.6f", location?.longitude)
-
-         Toast.makeText(this,"Latitude : $s_lat, Longitude : $s_log",Toast.LENGTH_SHORT).show()
-
-         latitude = location?.latitude!!
-         longitude = location?.longitude!!
-
-         // for address
-         try{
-             val geolocation = Geocoder(this,Locale.getDefault())
-             val address = geolocation.getFromLocation(latitude, longitude,1)
-
-             fetchAddress = address?.get(0)?.getAddressLine(0).toString()
-             Log.d("Location", fetchAddress)
-         } catch (e : Exception){
-             e.printStackTrace()
-         }
-     }
-
-     private fun initGPS(){
-         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-         settingsClient = LocationServices.getSettingsClient(this)
-         locationCallback = object : LocationCallback() {
-             override fun onLocationResult(locationResult: LocationResult) {
-                 super.onLocationResult(locationResult)
-                 getLocation(locationResult = locationResult)
-             }
-         }
-
-         locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
-             .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-             .setMinUpdateIntervalMillis(500)
-             .setMinUpdateDistanceMeters(1f)
-             .setWaitForAccurateLocation(true)
-             .build()
-
-         val builder : LocationSettingsRequest.Builder = LocationSettingsRequest.Builder()
-         builder.addLocationRequest(locationRequest!!)
-         locationSettingRequest = builder.build()
-         startLocationUpdate()
      }
 
      override fun onDestroy() {
@@ -191,7 +132,7 @@ import java.util.Locale
 }
 
 @Composable
-fun PanicButton(initGps : Unit) {
+fun PanicButton() {
     val context : Context = LocalContext.current
 
     Column(
@@ -200,7 +141,16 @@ fun PanicButton(initGps : Unit) {
     ) {
         Button(
             onClick = {
-                turnOnGPS(context,initGps)
+                // if condition, if a gps turn on, init a gps, if not turn on a gps first and run a initgps
+                val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                    // if a gps active we init a gps
+                    initGPS(context)
+                } else {
+                    // request a gps turn on
+                    requestOnGPS(context)
+                }
             }
         ) {
             Text(text = "Panic Button")
@@ -208,23 +158,79 @@ fun PanicButton(initGps : Unit) {
     }
 }
 
-fun turnOnGPS(context : Context,initGps: Unit){
-    // if condition, if a gps turn on, init a gps, if not turn on a gps first and run a initgps
-    val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+ /*GPS SECTION
+ * This GPS Section, this code contain a private function for gps */
+ private fun startLocationUpdate(context: Context){
+     settingsClient?.checkLocationSettings(locationSettingRequest!!)
+         ?.addOnSuccessListener {
+             Log.d("startlocationupdate","Location Settings Ok")
+             if(ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                 return@addOnSuccessListener;
+             }
+             fusedLocationProviderClient?.requestLocationUpdates(locationRequest!!, locationCallback!!, Looper.myLooper())
+         }
 
-    if(locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-        // if a gps active we init a gps
-        initGps
-    } else {
-        // request a gps turn on
-        requestOnGPS(context, initGps)
-    }
+         ?.addOnFailureListener { fail ->
+             Log.e("OnStartLocationUpdate", fail.printStackTrace().toString())
+         }
+ }
 
-}
+ private fun initGPS(context: Context){
+     fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+     settingsClient = LocationServices.getSettingsClient(context)
+     locationCallback = object : LocationCallback() {
+         override fun onLocationResult(locationResult: LocationResult) {
+             super.onLocationResult(locationResult)
+             getLocation(locationResult = locationResult,context)
+         }
+     }
 
+     locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
+         .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+         .setMinUpdateIntervalMillis(500)
+         .setMinUpdateDistanceMeters(1f)
+         .setWaitForAccurateLocation(true)
+         .build()
 
-fun requestOnGPS(context : Context, initGps: Unit){
-    // in here we check a permission again, if a permission granted we turnon a gps automatic
+     val builder : LocationSettingsRequest.Builder = LocationSettingsRequest.Builder()
+     builder.addLocationRequest(locationRequest!!)
+     locationSettingRequest = builder.build()
+     startLocationUpdate(context)
+ }
+
+ private fun getLocation(locationResult : LocationResult,context: Context){
+     location = locationResult.lastLocation
+
+     Log.d("Location","latitude ${location?.latitude}")
+     Log.d("Location","longitude ${location?.longitude}")
+     Log.d("Location","altitude ${location?.altitude}")
+
+     val latFormat = String.format(Locale.ROOT,"%.6f", location?.latitude)
+     val logFormat = String.format(Locale.ROOT,"%.6f", location?.longitude)
+
+     Toast.makeText(context,"Latitude : $latFormat, Longitude : $logFormat",Toast.LENGTH_SHORT).show()
+
+     latitude = location?.latitude!!
+     longitude = location?.longitude!!
+
+     // for address
+     try{
+         val geolocation = Geocoder(context,Locale.getDefault())
+         val address = geolocation.getFromLocation(
+             latitude,
+             longitude,
+             1
+         )
+
+         fetchAddress = address?.get(0)?.getAddressLine(0).toString()
+         Log.d("Location", fetchAddress)
+     } catch (e : Exception){
+         e.printStackTrace()
+     }
+ }
+
+fun requestOnGPS(context : Context){
+    // in here we check a permission again, if a permission granted we turnon a gps
     // check a location
     if(ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
         // if a permission granted, we turn on a gps
@@ -238,8 +244,7 @@ fun requestOnGPS(context : Context, initGps: Unit){
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)
         }
-
-        initGps
+        initGPS(context)
     }
 }
 
@@ -248,6 +253,6 @@ fun requestOnGPS(context : Context, initGps: Unit){
 @Composable
 fun MainPreview() {
     MyApplicationTheme {
-        PanicButton(Unit)
+        PanicButton()
     }
 }
