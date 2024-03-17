@@ -71,4 +71,5 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation ("com.google.android.gms:play-services-location:21.1.0")
+    implementation("androidx.compose.material3:material3:1.3.0-alpha02")
 }
