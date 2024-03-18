@@ -48,7 +48,6 @@ fun FormLogin(){
     var email by remember{ mutableStateOf("") }
     var password by remember{ mutableStateOf("") }
 
-
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -107,6 +106,6 @@ fun FormLogin(){
 @Composable
 fun GreetingPreview() {
     MyApplicationTheme {
-        FormRegister()
+        FormLogin()
     }
 }

@@ -157,10 +157,9 @@ fun FormRegister(){
                             DropdownMenuItem(
                                 text = { Text(text = item)},
                                 onClick = {
+                                    // in here we save a selectedText
                                     selectedText = item
                                     expanded = false
-
-                                    // in here we save a selectedText
                                 }
                             )
                         }
