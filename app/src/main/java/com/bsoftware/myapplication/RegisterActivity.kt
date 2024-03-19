@@ -1,7 +1,10 @@
 package com.bsoftware.myapplication
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -11,9 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -37,6 +38,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.bsoftware.myapplication.dataclass.CreateUserDataClass
+import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 
 class RegisterActivity : ComponentActivity() {
@@ -71,9 +74,12 @@ fun FormRegister(){
     DatePicker(state = datePickerState, modifier = Modifier.padding(16.dp))
 
     val context : Context = LocalContext.current
+    val activity : Activity = (LocalContext.current as Activity)
     val sexList = arrayOf("Laki-laki","Perempuan")
     var expanded by remember{ mutableStateOf(false) }
-    var selectedText by remember{ mutableStateOf(sexList[0]) }
+    var selectedSex by remember{ mutableStateOf(sexList[0]) }
+
+    val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
 
 
     Column(
@@ -142,7 +148,7 @@ fun FormRegister(){
                     onExpandedChange = {expanded = !expanded}
                 ) {
                     TextField(
-                        value = selectedText,
+                        value = selectedSex,
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = {ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)},
@@ -158,7 +164,7 @@ fun FormRegister(){
                                 text = { Text(text = item)},
                                 onClick = {
                                     // in here we save a selectedText
-                                    selectedText = item
+                                    selectedSex = item
                                     expanded = false
                                 }
                             )
@@ -204,19 +210,31 @@ fun FormRegister(){
                 .fillMaxWidth()
         )
 
-        // Button Login
-        Button(
-            onClick = { /*TODO*/ },
-            modifier = Modifier
-                .padding(top = 5.dp)
-                .fillMaxWidth()
-        ) {
-            Text(text = "Login")
-        }
-
         // Button Register
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                firebaseAuthentication.createDataUser(
+                    userData = CreateUserDataClass(
+                        fullname = fullName,
+                        idNumber = idNumber,
+                        address = address,
+                        phoneNumber = phoneNum,
+                        email = email,
+                        birthday = birthDay.toString(),
+                        sex = selectedSex
+                    ),
+                    password,
+                    activity = activity,
+                    onSuccess = {
+                        Toast.makeText(context,"Register User Successfull", Toast.LENGTH_SHORT).show()
+                        activity.startActivity(Intent(context,MainActivity::class.java))
+                        activity.finish()
+                    },
+                    onFailed = {
+                        Toast.makeText(context,"Register User Fail", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            },
             modifier = Modifier
                 .padding(top = 3.dp)
                 .fillMaxWidth()

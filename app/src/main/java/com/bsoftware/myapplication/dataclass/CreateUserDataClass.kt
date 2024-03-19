@@ -7,5 +7,6 @@ data class CreateUserDataClass(
     var address : String,
     var phoneNumber : String,
     var email : String,
-    var birthday : String
+    var birthday : String,
+    var sex : String
 )

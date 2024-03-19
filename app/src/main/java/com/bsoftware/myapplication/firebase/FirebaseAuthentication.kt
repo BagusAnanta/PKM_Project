@@ -17,7 +17,7 @@ class FirebaseAuthentication {
         return Firebase.auth
     }
 
-    fun initFirebaseRealtimeUserData() : DatabaseReference{
+    private fun initFirebaseRealtimeUserData() : DatabaseReference{
         return Firebase.database.reference
     }
 
@@ -28,15 +28,15 @@ class FirebaseAuthentication {
         onFailed : () -> Unit = {},
         activity : Activity
     ){
-        initFirebaseAuth().confirmPasswordReset(userData.email,emailPassword)
+        initFirebaseAuth().createUserWithEmailAndPassword(userData.email,emailPassword)
             .addOnCompleteListener(activity) {task ->
                 if(task.isSuccessful){
                     // in here, we gonna save or write DataCheckOut to into realtime database
                     // but first, we must get user UID for unique user identifier
                     userData.uidUser = initFirebaseAuth().uid.toString()
-                    initFirebaseRealtimeUserData().child("UserData").setValue(userData)
-                        .addOnSuccessListener {
-                            Log.d("OnDataUserSaver","Data User Save Successfull")
+                    initFirebaseRealtimeUserData().child("UserData").child(userData.uidUser).setValue(userData)
+                        .addOnSuccessListener {msg ->
+                            Log.d("OnDataUserSaver","Data User Save Successfull : $msg")
                         }
                         .addOnFailureListener {
                             Log.d("OnDataUserSaver", "Data User Fail To Save")
@@ -49,6 +49,45 @@ class FirebaseAuthentication {
                 onFailed()
                 val exception = task.exception
                 Log.e("CreateDataUser() Exception :", exception.toString())
+            }
+    }
+
+    fun loginUser(
+        email : String,
+        password : String,
+        activity: Activity,
+        onSuccess: () -> Unit = {},
+        onFailed: () -> Unit = {}
+    ){
+        initFirebaseAuth().signInWithEmailAndPassword(email,password)
+            .addOnCompleteListener(activity) {task ->
+                // in here we get a data user from UID
+                // get data for use uid
+                val uidUser = initFirebaseAuth().uid
+                val uidUserData = initFirebaseRealtimeUserData().child("UserData").child(uidUser.toString())
+
+                uidUserData.get().addOnCompleteListener {task ->
+                    if(task.isSuccessful){
+                        val getDataUser = task.result.getValue(CreateUserDataClass::class.java)
+                        if (getDataUser != null) {
+                            Log.d("Uid", getDataUser.uidUser)
+                            Log.d("Name", getDataUser.fullname)
+                            Log.d("IdNum", getDataUser.idNumber)
+                            Log.d("Address", getDataUser.address)
+                            Log.d("PhoneNum", getDataUser.phoneNumber)
+                            Log.d("Email", getDataUser.email)
+                            Log.d("Birthday", getDataUser.birthday)
+                            Log.d("Sex", getDataUser.sex)
+                        }
+                    }
+                }
+
+                onSuccess()
+            }
+
+            .addOnFailureListener {e ->
+                onFailed()
+                Log.e("loginUser() Error", "loginUser() Error At : $e")
             }
     }
 }

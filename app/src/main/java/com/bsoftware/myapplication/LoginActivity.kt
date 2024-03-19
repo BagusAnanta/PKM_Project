@@ -1,6 +1,10 @@
 package com.bsoftware.myapplication
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -21,8 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.bsoftware.myapplication.dataclass.CreateUserDataClass
+import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 
 class LoginActivity : ComponentActivity() {
@@ -47,6 +54,10 @@ class LoginActivity : ComponentActivity() {
 fun FormLogin(){
     var email by remember{ mutableStateOf("") }
     var password by remember{ mutableStateOf("") }
+    val activity : Activity = (LocalContext.current as Activity)
+    val context : Context = LocalContext.current
+
+    val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -79,7 +90,20 @@ fun FormLogin(){
 
         // Button Login
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                firebaseAuthentication.loginUser(
+                    email = email,
+                    password = password,
+                    activity = activity,
+                    onSuccess = {
+                        activity.startActivity(Intent(context,MainActivity::class.java))
+                        activity.finish()
+                    },
+                    onFailed = {
+                        Toast.makeText(context,"Login Fail, Please Try Again", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            },
             modifier = Modifier
                 .padding(top = 10.dp)
                 .fillMaxWidth()
@@ -89,7 +113,10 @@ fun FormLogin(){
 
         // Button Register
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                activity.startActivity(Intent(context,RegisterActivity::class.java))
+                activity.finish()
+            },
             modifier = Modifier
                 .padding(top = 3.dp)
                 .fillMaxWidth()
@@ -98,8 +125,6 @@ fun FormLogin(){
         }
     }
 }
-
-
 
 
 @Preview(showBackground = true, showSystemUi = true)
