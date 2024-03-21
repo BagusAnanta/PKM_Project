@@ -16,15 +16,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
@@ -32,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +48,9 @@ import androidx.compose.ui.unit.dp
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class RegisterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +62,7 @@ class RegisterActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
+                    FormRegister()
                 }
             }
         }
@@ -68,16 +78,15 @@ fun FormRegister(){
     var phoneNum by remember{ mutableStateOf("") }
     var email by remember{ mutableStateOf("") }
     var password by remember{ mutableStateOf("") }
-    var birthDay by remember{ mutableLongStateOf(0L) }
-
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = 1578096000000)
-    DatePicker(state = datePickerState, modifier = Modifier.padding(16.dp))
+    var birthDay by remember{ mutableStateOf("Tanggal Lahir") }
 
     val context : Context = LocalContext.current
     val activity : Activity = (LocalContext.current as Activity)
     val sexList = arrayOf("Laki-laki","Perempuan")
     var expanded by remember{ mutableStateOf(false) }
     var selectedSex by remember{ mutableStateOf(sexList[0]) }
+
+    var showDialogDate by remember{ mutableStateOf(false) }
 
     val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
 
@@ -173,18 +182,26 @@ fun FormRegister(){
                 }
             }
 
+
             TextField(
-                value = birthDay.toString(),
-                onValueChange = {},
+                value = birthDay,
+                onValueChange = {birthDay = it},
                 readOnly = true,
                 modifier = Modifier
                     .padding(start = 5.dp)
                     .clickable {
-                        birthDay = datePickerState.selectedDateMillis!!
-                    }
+                        showDialogDate = true
+                    },
+                trailingIcon = {
+                    Icons.Outlined.Add
+                },
+                enabled = false
             )
-        }
 
+            if(showDialogDate){
+                DatePickerCustomDialog(onDateSelected = {birthDay = it}, onDismiss = {showDialogDate = false})
+            }
+        }
 
         // email textfield
         TextField(
@@ -220,7 +237,7 @@ fun FormRegister(){
                         address = address,
                         phoneNumber = phoneNum,
                         email = email,
-                        birthday = birthDay.toString(),
+                        birthday = birthDay,
                         sex = selectedSex
                     ),
                     password,
@@ -231,7 +248,7 @@ fun FormRegister(){
                         activity.finish()
                     },
                     onFailed = {
-                        Toast.makeText(context,"Register User Fail", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,"You Email Already Register", Toast.LENGTH_SHORT).show()
                     }
                 )
             },
@@ -241,6 +258,46 @@ fun FormRegister(){
         ) {
             Text(text = "Daftar")
         }
+    }
+}
+
+fun convertMillisToDate(millis : Long) : String{
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return formatter.format(Date(millis))
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerCustomDialog(
+    onDateSelected : (String) -> Unit,
+    onDismiss : () -> Unit
+){
+    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates{
+        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+            return utcTimeMillis <= System.currentTimeMillis()
+        }
+    })
+
+    val selectedDate = datePickerState.selectedDateMillis?.let {
+        convertMillisToDate(it)
+    }
+
+    DatePickerDialog(
+        onDismissRequest = {onDismiss()},
+        confirmButton = {
+            TextButton(onClick = {
+                onDateSelected(selectedDate ?: "Tanggal Lahir")
+            }) {
+                Text(text = "Ok")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = {onDismiss()}) {
+                Text(text = "Cancel")
+            }
+        }
+    ) {
+        DatePicker(state = datePickerState)
     }
 }
 
