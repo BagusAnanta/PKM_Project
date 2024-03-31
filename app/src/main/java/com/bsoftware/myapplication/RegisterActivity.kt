@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
+import com.bsoftware.myapplication.dialogalert.DatePickerCustomDialog
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 import java.text.SimpleDateFormat
@@ -261,45 +262,7 @@ fun FormRegister(){
     }
 }
 
-fun convertMillisToDate(millis : Long) : String{
-    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    return formatter.format(Date(millis))
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerCustomDialog(
-    onDateSelected : (String) -> Unit,
-    onDismiss : () -> Unit
-){
-    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates{
-        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-            return utcTimeMillis <= System.currentTimeMillis()
-        }
-    })
-
-    val selectedDate = datePickerState.selectedDateMillis?.let {
-        convertMillisToDate(it)
-    }
-
-    DatePickerDialog(
-        onDismissRequest = {onDismiss()},
-        confirmButton = {
-            TextButton(onClick = {
-                onDateSelected(selectedDate ?: "Tanggal Lahir")
-            }) {
-                Text(text = "Ok")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = {onDismiss()}) {
-                Text(text = "Cancel")
-            }
-        }
-    ) {
-        DatePicker(state = datePickerState)
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

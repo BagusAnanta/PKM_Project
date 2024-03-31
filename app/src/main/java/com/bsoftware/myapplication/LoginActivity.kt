@@ -32,6 +32,8 @@ import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 
+val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
+
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +44,17 @@ class LoginActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val context : Context = LocalContext.current
+
+                    firebaseAuthentication.checkUserLogin(
+                        onLogin = {
+                            val intent = Intent(context,MainActivity::class.java)
+                            this.startActivity(intent)
+                        },
+                        onFailLogin = {
+                            // empty fail login
+                        }
+                    )
                     FormLogin()
                 }
             }
@@ -57,7 +70,7 @@ fun FormLogin(){
     val activity : Activity = (LocalContext.current as Activity)
     val context : Context = LocalContext.current
 
-    val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
+
 
     Column(
         verticalArrangement = Arrangement.Center,

@@ -2,4 +2,6 @@
     <string name="app_name">My Application</string>
     <string name="title_activity_login">Siduka</string>
     <string name="title_activity_register">RegisterActivity</string>
+    <string name="title_activity_custom_dialog">CustomDialog</string>
+    <string name="title_activity_date_dialog">DateDialog</string>
 </resources>

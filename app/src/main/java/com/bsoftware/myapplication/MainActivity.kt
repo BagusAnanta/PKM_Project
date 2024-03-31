@@ -1,8 +1,10 @@
  package com.bsoftware.myapplication
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Geocoder.GeocodeListener
@@ -16,6 +18,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +30,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
+import com.bsoftware.myapplication.dialogalert.AlertDialogCustome
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationCallback
@@ -39,8 +49,10 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
 import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
+import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
@@ -49,7 +61,12 @@ import java.lang.NullPointerException
 import java.util.Locale
 
  var fusedLocationProviderClient : FusedLocationProviderClient? = null
- var locationRequest : LocationRequest? = null
+ var locationRequest : LocationRequest? = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
+                                         .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+                                         .setMinUpdateIntervalMillis(500)
+                                         .setMinUpdateDistanceMeters(1f)
+                                         .setWaitForAccurateLocation(true)
+                                         .build()
  var locationCallback : LocationCallback? = null
  var location : Location? = null
  var settingsClient : SettingsClient? = null
@@ -57,7 +74,6 @@ import java.util.Locale
  var latitude : Double = 0.0
  var longitude : Double = 0.0
  var fetchAddress : String = ""
-
 
  class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -134,6 +150,8 @@ import java.util.Locale
 @Composable
 fun PanicButton() {
     val context : Context = LocalContext.current
+    val activity : Activity = (LocalContext.current) as Activity
+    var showGPSDialog by remember{ mutableStateOf(false) }
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -148,13 +166,25 @@ fun PanicButton() {
                     // if a gps active we init a gps
                     initGPS(context)
                 } else {
-                    // request a gps turn on
-                    requestOnGPS(context)
+                    showGPSDialog = true
                 }
             }
         ) {
             Text(text = "Panic Button")
         }
+    }
+
+    if(showGPSDialog){
+        // if a gps no active, we request a gps use AlertDialog for turn on a gps
+        AlertDialogCustome(
+            title = "Perhatian",
+            message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
+            onDismiss =  {false},
+            onAgreeClickButton = {
+                // in here, we gonna turn gps
+                requestOnGPS(context)
+            }
+        )
     }
 }
 
@@ -175,6 +205,8 @@ fun PanicButton() {
          }
  }
 
+
+
  private fun initGPS(context: Context){
      fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
      settingsClient = LocationServices.getSettingsClient(context)
@@ -184,17 +216,6 @@ fun PanicButton() {
              getLocation(locationResult = locationResult,context)
          }
      }
-
-     locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
-         .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-         .setMinUpdateIntervalMillis(500)
-         .setMinUpdateDistanceMeters(1f)
-         .setWaitForAccurateLocation(true)
-         .build()
-
-     val builder : LocationSettingsRequest.Builder = LocationSettingsRequest.Builder()
-     builder.addLocationRequest(locationRequest!!)
-     locationSettingRequest = builder.build()
      startLocationUpdate(context)
  }
 

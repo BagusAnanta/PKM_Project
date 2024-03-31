@@ -2,6 +2,7 @@ package com.bsoftware.myapplication.firebase
 
 import android.app.Activity
 import android.util.Log
+import androidx.compose.runtime.Composable
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -89,5 +90,17 @@ class FirebaseAuthentication {
                 onFailed()
                 Log.e("loginUser() Error", "loginUser() Error At : $e")
             }
+    }
+
+    @Composable
+    fun checkUserLogin(onLogin : () -> Unit, onFailLogin : () -> Unit){
+        val user = Firebase.auth.currentUser
+
+        if(user != null){
+            // if user its have and not null or sign in
+            onLogin()
+        } else {
+            onFailLogin()
+        }
     }
 }
