@@ -50,6 +50,7 @@ class LoginActivity : ComponentActivity() {
                         onLogin = {
                             val intent = Intent(context,MainActivity::class.java)
                             this.startActivity(intent)
+                            this.finish()
                         },
                         onFailLogin = {
                             // empty fail login
@@ -69,8 +70,6 @@ fun FormLogin(){
     var password by remember{ mutableStateOf("") }
     val activity : Activity = (LocalContext.current as Activity)
     val context : Context = LocalContext.current
-
-
 
     Column(
         verticalArrangement = Arrangement.Center,

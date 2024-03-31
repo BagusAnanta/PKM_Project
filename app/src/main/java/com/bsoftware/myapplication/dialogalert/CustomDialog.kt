@@ -95,7 +95,12 @@ fun AlertDialogCustome(
                     Row {
                         ClickableText(
                             text = AnnotatedString("Cancel"),
-                            onClick = {onDismiss(true)}
+                            onClick = {
+                                onDismiss(true)
+                            },
+                            style = TextStyle(
+                                fontSize = 20.sp
+                            )
                         )
 
                         ClickableText(
@@ -103,7 +108,11 @@ fun AlertDialogCustome(
                             onClick = {
                                 onAgreeClickButton()
                                 onDismiss(true)
-                            }
+                            },
+                            modifier = Modifier.padding(start = 30.dp),
+                            style = TextStyle(
+                                fontSize = 20.sp
+                            )
                         )
                     }
                 }

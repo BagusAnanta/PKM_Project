@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import com.bsoftware.myapplication.dialogalert.AlertDialogCustome
+import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -61,14 +62,9 @@ import java.lang.NullPointerException
 import java.util.Locale
 
  var fusedLocationProviderClient : FusedLocationProviderClient? = null
- var locationRequest : LocationRequest? = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
-                                         .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-                                         .setMinUpdateIntervalMillis(500)
-                                         .setMinUpdateDistanceMeters(1f)
-                                         .setWaitForAccurateLocation(true)
-                                         .build()
  var locationCallback : LocationCallback? = null
  var location : Location? = null
+ var locationRequest : LocationRequest? = null
  var settingsClient : SettingsClient? = null
  var locationSettingRequest : LocationSettingsRequest? = null
  var latitude : Double = 0.0
@@ -122,6 +118,7 @@ import java.util.Locale
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    FirebaseAuthentication().getUserInformationUseUid(FirebaseAuthentication().getUidUser)
                     PanicButton()
                 }
             }
@@ -150,7 +147,6 @@ import java.util.Locale
 @Composable
 fun PanicButton() {
     val context : Context = LocalContext.current
-    val activity : Activity = (LocalContext.current) as Activity
     var showGPSDialog by remember{ mutableStateOf(false) }
 
     Column(
@@ -190,6 +186,7 @@ fun PanicButton() {
 
  /*GPS SECTION
  * This GPS Section, this code contain a private function for gps */
+ // in indonesian : Setiap HandPhone berpindah, gps akan selalu update lokasi, jika berhenti pada suatu tempat, maka tidak akan update
  private fun startLocationUpdate(context: Context){
      settingsClient?.checkLocationSettings(locationSettingRequest!!)
          ?.addOnSuccessListener {
@@ -197,6 +194,7 @@ fun PanicButton() {
              if(ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
                  return@addOnSuccessListener;
              }
+
              fusedLocationProviderClient?.requestLocationUpdates(locationRequest!!, locationCallback!!, Looper.myLooper())
          }
 
@@ -216,6 +214,18 @@ fun PanicButton() {
              getLocation(locationResult = locationResult,context)
          }
      }
+
+     locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
+         .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+         .setMinUpdateIntervalMillis(500)
+         .setMinUpdateDistanceMeters(1f)
+         .setWaitForAccurateLocation(true)
+         .build()
+
+     val builder : LocationSettingsRequest.Builder = LocationSettingsRequest.Builder()
+     builder.addLocationRequest(locationRequest!!)
+     locationSettingRequest = builder.build()
+
      startLocationUpdate(context)
  }
 

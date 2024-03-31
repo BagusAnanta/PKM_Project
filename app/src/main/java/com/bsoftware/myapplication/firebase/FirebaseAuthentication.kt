@@ -13,6 +13,12 @@ import com.google.firebase.database.ktx.database
 
 class FirebaseAuthentication {
 
+    var getUidUser : String? = null
+        get() = field
+        set(value) {
+            field = value
+        }
+
     // init firebase
     private fun initFirebaseAuth() : FirebaseAuth{
         return Firebase.auth
@@ -65,24 +71,7 @@ class FirebaseAuthentication {
                 // in here we get a data user from UID
                 // get data for use uid
                 val uidUser = initFirebaseAuth().uid
-                val uidUserData = initFirebaseRealtimeUserData().child("UserData").child(uidUser.toString())
-
-                uidUserData.get().addOnCompleteListener {task ->
-                    if(task.isSuccessful){
-                        val getDataUser = task.result.getValue(CreateUserDataClass::class.java)
-                        if (getDataUser != null) {
-                            Log.d("Uid", getDataUser.uidUser)
-                            Log.d("Name", getDataUser.fullname)
-                            Log.d("IdNum", getDataUser.idNumber)
-                            Log.d("Address", getDataUser.address)
-                            Log.d("PhoneNum", getDataUser.phoneNumber)
-                            Log.d("Email", getDataUser.email)
-                            Log.d("Birthday", getDataUser.birthday)
-                            Log.d("Sex", getDataUser.sex)
-                        }
-                    }
-                }
-
+                getUserInformationUseUid(uidUser)
                 onSuccess()
             }
 
@@ -92,15 +81,37 @@ class FirebaseAuthentication {
             }
     }
 
-    @Composable
+
     fun checkUserLogin(onLogin : () -> Unit, onFailLogin : () -> Unit){
         val user = Firebase.auth.currentUser
 
         if(user != null){
             // if user its have and not null or sign in
+            // in here, we gonna get a user data from firebase
+            getUidUser = user.uid
             onLogin()
         } else {
             onFailLogin()
+        }
+    }
+
+    fun getUserInformationUseUid(uid : String?){
+        val uidUserData = initFirebaseRealtimeUserData().child("UserData").child(uid.toString())
+
+        uidUserData.get().addOnCompleteListener {task ->
+            if(task.isSuccessful){
+                val getDataUser = task.result.getValue(CreateUserDataClass::class.java)
+                if (getDataUser != null) {
+                    Log.d("Uid", getDataUser.uidUser)
+                    Log.d("Name", getDataUser.fullname)
+                    Log.d("IdNum", getDataUser.idNumber)
+                    Log.d("Address", getDataUser.address)
+                    Log.d("PhoneNum", getDataUser.phoneNumber)
+                    Log.d("Email", getDataUser.email)
+                    Log.d("Birthday", getDataUser.birthday)
+                    Log.d("Sex", getDataUser.sex)
+                }
+            }
         }
     }
 }
