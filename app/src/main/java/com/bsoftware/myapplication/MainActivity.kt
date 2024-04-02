@@ -58,8 +58,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import java.lang.NullPointerException
 import java.util.Locale
+import kotlin.NullPointerException
 
  var fusedLocationProviderClient : FusedLocationProviderClient? = null
  var locationCallback : LocationCallback? = null
@@ -118,7 +118,6 @@ import java.util.Locale
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    FirebaseAuthentication().getUserInformationUseUid(FirebaseAuthentication().getUidUser)
                     PanicButton()
                 }
             }
@@ -133,6 +132,7 @@ import java.util.Locale
                      Log.d("StopLocationUpdate", task.toString())
                  }
          } catch (e : NullPointerException){
+             // can NPE because, if user no use a gps, stopLocationUpdate return a null value
              Log.e("StopLocationUpdateError", e.toString())
          }
      }
@@ -140,7 +140,11 @@ import java.util.Locale
      override fun onDestroy() {
          super.onDestroy()
          // stop location if a activity destroy
-         stopLocationUpdate()
+         try{
+             stopLocationUpdate()
+         } catch (e : NullPointerException){
+             Log.e("DestroyLocationUpdate", "LocationUpdateNoExist,Exit")
+         }
      }
 }
 
@@ -270,7 +274,7 @@ fun requestOnGPS(context : Context){
         if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
             Log.w("LocationProviderEnable", "LocationProviderEnable")
         } else {
-            // turn on gps use intent
+            // turn on gps use intent into settings
             val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)

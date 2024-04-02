@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -51,6 +52,9 @@ class LoginActivity : ComponentActivity() {
                             val intent = Intent(context,MainActivity::class.java)
                             this.startActivity(intent)
                             this.finish()
+
+                            print("FirebaseAuth User UID : ${FirebaseAuthentication().getUidUser}")
+                            FirebaseAuthentication().getUserInformationUseUid(FirebaseAuthentication().getUidUser)
                         },
                         onFailLogin = {
                             // empty fail login
