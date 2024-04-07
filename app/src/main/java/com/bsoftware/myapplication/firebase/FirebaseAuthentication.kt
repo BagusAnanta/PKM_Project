@@ -1,15 +1,20 @@
 package com.bsoftware.myapplication.firebase
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
+import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
 import com.google.firebase.database.ktx.database
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class FirebaseAuthentication {
 
@@ -33,7 +38,8 @@ class FirebaseAuthentication {
         emailPassword : String,
         onSuccess : () -> Unit = {},
         onFailed : () -> Unit = {},
-        activity : Activity
+        activity : Activity,
+        context: Context
     ){
         initFirebaseAuth().createUserWithEmailAndPassword(userData.email,emailPassword)
             .addOnCompleteListener(activity) {task ->
@@ -44,6 +50,9 @@ class FirebaseAuthentication {
                     initFirebaseRealtimeUserData().child("UserData").child(userData.uidUser).setValue(userData)
                         .addOnSuccessListener {msg ->
                             Log.d("OnDataUserSaver","Data User Save Successfull : $msg")
+                            // in here, we gonna get a data
+                            val uidUser = initFirebaseAuth().uid
+                            getUserInformationUseUid(uidUser,context)
                         }
                         .addOnFailureListener {
                             Log.d("OnDataUserSaver", "Data User Fail To Save")
@@ -64,14 +73,15 @@ class FirebaseAuthentication {
         password : String,
         activity: Activity,
         onSuccess: () -> Unit = {},
-        onFailed: () -> Unit = {}
+        onFailed: () -> Unit = {},
+        context: Context
     ){
         initFirebaseAuth().signInWithEmailAndPassword(email,password)
             .addOnCompleteListener(activity) {task ->
                 // in here we get a data user from UID
                 // get data for use uid
                 val uidUser = initFirebaseAuth().uid
-                getUserInformationUseUid(uidUser)
+                getUserInformationUseUid(uidUser,context)
                 onSuccess()
             }
 
@@ -82,7 +92,7 @@ class FirebaseAuthentication {
     }
 
 
-    fun checkUserLogin(onLogin : () -> Unit, onFailLogin : () -> Unit){
+    /*fun checkUserLogin(onLogin : () -> Unit, onFailLogin : () -> Unit){
         val user = Firebase.auth.currentUser
 
         if(user != null){
@@ -93,9 +103,9 @@ class FirebaseAuthentication {
         } else {
             onFailLogin()
         }
-    }
+    }*/
 
-    fun getUserInformationUseUid(uid : String?){
+    fun getUserInformationUseUid(uid : String?,context : Context){
         val uidUserData = initFirebaseRealtimeUserData().child("UserData").child(uid.toString())
 
         uidUserData.get().addOnCompleteListener {task ->
@@ -110,6 +120,22 @@ class FirebaseAuthentication {
                     Log.d("Email", getDataUser.email)
                     Log.d("Birthday", getDataUser.birthday)
                     Log.d("Sex", getDataUser.sex)
+
+                    // in here, we gonna safe a data into preference DataStorage
+                    CoroutineScope(Dispatchers.IO).launch {
+                        UserDataDatastore(context).storeUserDataProfile(
+                            CreateUserDataClass(
+                                getDataUser.uidUser,
+                                getDataUser.fullname,
+                                getDataUser.idNumber,
+                                getDataUser.address,
+                                getDataUser.phoneNumber,
+                                getDataUser.email,
+                                getDataUser.birthday,
+                                getDataUser.sex
+                            )
+                        )
+                    }
                 }
             }
         }

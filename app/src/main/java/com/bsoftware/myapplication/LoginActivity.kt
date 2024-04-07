@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
+import com.bsoftware.myapplication.sharepref.UserLoginSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 
 val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
@@ -47,20 +48,16 @@ class LoginActivity : ComponentActivity() {
                 ) {
                     val context : Context = LocalContext.current
 
-                    firebaseAuthentication.checkUserLogin(
-                        onLogin = {
-                            val intent = Intent(context,MainActivity::class.java)
-                            this.startActivity(intent)
-                            this.finish()
+                    if(UserLoginSharePref(this).getStatus()){
+                        // if user done for login (or true login), we gonna intent and get a data
+                        val intent = Intent(context,MainActivity::class.java)
+                        this.startActivity(intent)
+                        this.finish()
 
-                            print("FirebaseAuth User UID : ${FirebaseAuthentication().getUidUser}")
-                            FirebaseAuthentication().getUserInformationUseUid(FirebaseAuthentication().getUidUser)
-                        },
-                        onFailLogin = {
-                            // empty fail login
-                        }
-                    )
-                    FormLogin()
+                    } else {
+                        // if a user login is false
+                        FormLogin()
+                    }
                 }
             }
         }
@@ -114,10 +111,12 @@ fun FormLogin(){
                     onSuccess = {
                         activity.startActivity(Intent(context,MainActivity::class.java))
                         activity.finish()
+                        UserLoginSharePref(activity).setStateLogin(true)
                     },
                     onFailed = {
                         Toast.makeText(context,"Login Fail, Please Try Again", Toast.LENGTH_SHORT).show()
-                    }
+                    },
+                    context
                 )
             },
             modifier = Modifier
