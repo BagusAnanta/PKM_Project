@@ -250,7 +250,8 @@ fun FormRegister(){
                     },
                     onFailed = {
                         Toast.makeText(context,"You Email Already Register", Toast.LENGTH_SHORT).show()
-                    }
+                    },
+                    context = context
                 )
             },
             modifier = Modifier

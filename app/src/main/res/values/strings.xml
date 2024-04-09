@@ -4,4 +4,5 @@
     <string name="title_activity_register">RegisterActivity</string>
     <string name="title_activity_custom_dialog">CustomDialog</string>
     <string name="title_activity_date_dialog">DateDialog</string>
+    <string name="title_activity_user_profile">UserProfileActivity</string>
 </resources>

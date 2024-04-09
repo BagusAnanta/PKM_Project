@@ -151,6 +151,7 @@ import kotlin.NullPointerException
 @Composable
 fun PanicButton() {
     val context : Context = LocalContext.current
+    val activity : Activity = (LocalContext.current as Activity)
     var showGPSDialog by remember{ mutableStateOf(false) }
 
     Column(
@@ -172,6 +173,16 @@ fun PanicButton() {
         ) {
             Text(text = "Panic Button")
         }
+
+        Button(
+            onClick = {
+                val intent = Intent(context,UserProfileActivity::class.java)
+                activity.startActivity(intent)
+                activity.finish()
+            },
+        ) {
+            Text(text = "Profile")
+        }
     }
 
     if(showGPSDialog){
@@ -186,6 +197,8 @@ fun PanicButton() {
             }
         )
     }
+    
+
 }
 
  /*GPS SECTION

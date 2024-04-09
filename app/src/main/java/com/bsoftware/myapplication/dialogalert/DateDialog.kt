@@ -31,7 +31,7 @@ class DateDialog : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    //Greeting("Android")
+                    //UserProfileView("Android")
                 }
             }
         }
@@ -84,6 +84,6 @@ fun DatePickerCustomDialog(
 @Composable
 fun GreetingPreview3() {
     MyApplicationTheme {
-        //Greeting("Android")
+        //UserProfileView("Android")
     }
 }
