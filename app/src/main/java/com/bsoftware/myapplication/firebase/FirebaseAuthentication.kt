@@ -3,7 +3,6 @@ package com.bsoftware.myapplication.firebase
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.Composable
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
 import com.google.firebase.Firebase
@@ -11,25 +10,27 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
-import com.google.firebase.database.ktx.database
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class FirebaseAuthentication {
 
-    var getUidUser : String? = null
+    var uidUserAuth : String? = null
         get() = field
         set(value) {
             field = value
         }
+
+    val firstChild = "UserData"
+        get() = field
 
     // init firebase
     private fun initFirebaseAuth() : FirebaseAuth{
         return Firebase.auth
     }
 
-    private fun initFirebaseRealtimeUserData() : DatabaseReference{
+    fun initFirebaseRealtime() : DatabaseReference{
         return Firebase.database.reference
     }
 
@@ -47,12 +48,12 @@ class FirebaseAuthentication {
                     // in here, we gonna save or write DataCheckOut to into realtime database
                     // but first, we must get user UID for unique user identifier
                     userData.uidUser = initFirebaseAuth().uid.toString()
-                    initFirebaseRealtimeUserData().child("UserData").child(userData.uidUser).setValue(userData)
+                    initFirebaseRealtime().child(firstChild).child(userData.uidUser).setValue(userData)
                         .addOnSuccessListener {msg ->
                             Log.d("OnDataUserSaver","Data User Save Successfull : $msg")
                             // in here, we gonna get a data
-                            val uidUser = initFirebaseAuth().uid
-                            getUserInformationUseUid(uidUser,context)
+                            uidUserAuth = initFirebaseAuth().uid
+                            getUserInformationUseUid(uidUserAuth,context)
                         }
                         .addOnFailureListener {
                             Log.d("OnDataUserSaver", "Data User Fail To Save")
@@ -80,8 +81,7 @@ class FirebaseAuthentication {
             .addOnCompleteListener(activity) {task ->
                 // in here we get a data user from UID
                 // get data for use uid
-                val uidUser = initFirebaseAuth().uid
-                getUserInformationUseUid(uidUser,context)
+                getUserInformationUseUid(initFirebaseAuth().uid,context)
                 onSuccess()
             }
 
@@ -98,15 +98,15 @@ class FirebaseAuthentication {
         if(user != null){
             // if user its have and not null or sign in
             // in here, we gonna get a user data from firebase
-            getUidUser = user.uid
+            uidUserAuth = user.uid
             onLogin()
         } else {
             onFailLogin()
         }
     }*/
 
-    fun getUserInformationUseUid(uid : String?,context : Context){
-        val uidUserData = initFirebaseRealtimeUserData().child("UserData").child(uid.toString())
+    private fun getUserInformationUseUid(uid : String?,context : Context){
+        val uidUserData = initFirebaseRealtime().child("UserData").child(uid.toString())
 
         uidUserData.get().addOnCompleteListener {task ->
             if(task.isSuccessful){

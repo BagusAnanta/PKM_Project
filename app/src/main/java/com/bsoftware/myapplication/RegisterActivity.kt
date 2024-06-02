@@ -267,7 +267,7 @@ fun FormRegister(){
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview2() {
+fun RegisterActivityPreview() {
     MyApplicationTheme {
         FormRegister()
     }

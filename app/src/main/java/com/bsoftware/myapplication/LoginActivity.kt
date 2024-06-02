@@ -144,7 +144,7 @@ fun FormLogin(){
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun GreetingPreview() {
+fun LoginActivityPreview() {
     MyApplicationTheme {
         FormLogin()
     }
