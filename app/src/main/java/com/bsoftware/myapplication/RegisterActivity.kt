@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -27,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,8 +47,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.dialogalert.DatePickerCustomDialog
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
@@ -99,18 +106,44 @@ fun FormRegister(){
             .fillMaxSize()
             .padding(start = 15.dp, end = 15.dp)
     ) {
+
+        // title text
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+
+            Text(
+                text = "siDuKa",
+                style = TextStyle(
+                    fontSize = 35.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+            )
+
+            Text(
+                text = "Daftar",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(top = 5.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.padding(top = 10.dp))
         // fullname textfield
-        TextField(
+        OutlinedTextField(
             value = fullName,
             onValueChange = {fullName = it},
             label = {
                 Text(text = "Nama Lengkap")
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp)
         )
 
         // idNumber textfield
-        TextField(
+        OutlinedTextField(
             value = idNumber,
             onValueChange = {idNumber = it},
             label = {
@@ -118,11 +151,12 @@ fun FormRegister(){
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 5.dp)
+                .padding(top = 5.dp),
+            shape = RoundedCornerShape(15.dp)
         )
 
         // Address textfield
-        TextField(
+        OutlinedTextField(
             value = address,
             onValueChange = {address = it},
             label = {
@@ -130,11 +164,12 @@ fun FormRegister(){
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 5.dp)
+                .padding(top = 5.dp),
+            shape = RoundedCornerShape(15.dp)
         )
 
         // PhoneNum textfield
-        TextField(
+        OutlinedTextField(
             value = phoneNum,
             onValueChange = {phoneNum = it},
             label = {
@@ -142,12 +177,13 @@ fun FormRegister(){
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 5.dp)
+                .padding(top = 5.dp),
+            shape = RoundedCornerShape(15.dp)
         )
 
         Row(
             modifier = Modifier
-                .padding(top = 5.dp)
+                .padding(top = 10.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -157,12 +193,13 @@ fun FormRegister(){
                     expanded = expanded,
                     onExpandedChange = {expanded = !expanded}
                 ) {
-                    TextField(
+                    OutlinedTextField(
                         value = selectedSex,
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = {ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)},
-                        modifier = Modifier.menuAnchor()
+                        modifier = Modifier.menuAnchor(),
+                        shape = RoundedCornerShape(15.dp)
                     )
 
                     ExposedDropdownMenu(
@@ -184,7 +221,7 @@ fun FormRegister(){
             }
 
 
-            TextField(
+            OutlinedTextField(
                 value = birthDay,
                 onValueChange = {birthDay = it},
                 readOnly = true,
@@ -193,10 +230,11 @@ fun FormRegister(){
                     .clickable {
                         showDialogDate = true
                     },
-                trailingIcon = {
-                    Icons.Outlined.Add
+                leadingIcon = {
+                    Icons.Rounded.DateRange
                 },
-                enabled = false
+                enabled = false,
+                shape = RoundedCornerShape(15.dp)
             )
 
             if(showDialogDate){
@@ -205,7 +243,7 @@ fun FormRegister(){
         }
 
         // email textfield
-        TextField(
+        OutlinedTextField(
             value = email,
             onValueChange = {email = it},
             label = {
@@ -213,11 +251,12 @@ fun FormRegister(){
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 5.dp)
+                .padding(top = 5.dp),
+            shape = RoundedCornerShape(15.dp)
         )
 
         // password textfield
-        TextField(
+        OutlinedTextField(
             value = password,
             onValueChange = {password = it},
             label = {
@@ -225,40 +264,60 @@ fun FormRegister(){
             },
             modifier = Modifier
                 .padding(top = 5.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp)
         )
 
-        // Button Register
-        Button(
-            onClick = {
-                firebaseAuthentication.createDataUser(
-                    userData = CreateUserDataClass(
-                        fullname = fullName,
-                        idNumber = idNumber,
-                        address = address,
-                        phoneNumber = phoneNum,
-                        email = email,
-                        birthday = birthDay,
-                        sex = selectedSex
-                    ),
-                    password,
-                    activity = activity,
-                    onSuccess = {
-                        Toast.makeText(context,"Register User Successfull", Toast.LENGTH_SHORT).show()
-                        activity.startActivity(Intent(context,MainActivity::class.java))
-                        activity.finish()
-                    },
-                    onFailed = {
-                        Toast.makeText(context,"You Email Already Register", Toast.LENGTH_SHORT).show()
-                    },
-                    context = context
-                )
-            },
-            modifier = Modifier
-                .padding(top = 3.dp)
-                .fillMaxWidth()
-        ) {
-            Text(text = "Daftar")
+        Row{
+            Button(
+                onClick = {
+                    if(fullName.isNotEmpty() || idNumber.isNotEmpty() || address.isNotEmpty() || phoneNum.isNotEmpty() || email.isNotEmpty() || password.isNotEmpty() || birthDay.isNotEmpty() || selectedSex.isNotEmpty()){
+                        firebaseAuthentication.createDataUser(
+                            userData = CreateUserDataClass(
+                                fullname = fullName,
+                                idNumber = idNumber,
+                                address = address,
+                                phoneNumber = phoneNum,
+                                email = email,
+                                birthday = birthDay,
+                                sex = selectedSex
+                            ),
+                            password,
+                            activity = activity,
+                            onSuccess = {
+                                Toast.makeText(context,"Register User Successfull", Toast.LENGTH_SHORT).show()
+                                activity.startActivity(Intent(context,MainActivity::class.java))
+                                activity.finish()
+                            },
+                            onFailed = {
+                                Toast.makeText(context,"You Email Already Register", Toast.LENGTH_SHORT).show()
+                            },
+                            context = context
+                        )
+                    } else {
+                        Toast.makeText(context,"Please Fill All Field", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier
+                    .padding(top = 10.dp)
+            ) {
+                Text(text = "Daftar")
+            }
+
+            // Button Login
+            // Button Register
+            Button(
+                onClick = {
+                    // intent into login activity
+                    val intent = Intent(context,LoginActivity::class.java)
+                    activity.startActivity(intent)
+                    activity.finish()
+                },
+                modifier = Modifier
+                    .padding(top = 10.dp, start = 5.dp)
+            ) {
+                Text(text = "Login")
+            }
         }
     }
 }

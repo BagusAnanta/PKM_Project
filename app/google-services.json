@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "829142491903",
+    "project_id": "siduka-d2aba",
+    "storage_bucket": "siduka-d2aba.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:829142491903:android:f55267e4dbae7f677022ca",
+        "android_client_info": {
+          "package_name": "com.bsoftware.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAV2fmX_MOpvB-TEHral2Zj8nEp2qmBfFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
