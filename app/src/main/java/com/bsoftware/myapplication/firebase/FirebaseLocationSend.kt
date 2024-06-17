@@ -1,7 +1,9 @@
 package com.bsoftware.myapplication.firebase
 
+import android.app.Activity
 import android.util.Log
 import com.bsoftware.myapplication.dataclass.CreateLocationDataClass
+import com.bsoftware.myapplication.sharepref.UidSharePref
 
 class FirebaseLocationSend {
 
@@ -11,9 +13,10 @@ class FirebaseLocationSend {
     fun setLocationSend(
         locationLongLatAddr : CreateLocationDataClass,
         onSuccess : () -> Unit = {},
-        onError : () -> Unit = {}
+        onError : () -> Unit = {},
+        activity : Activity
     ) {
-        FirebaseAuthentication().initFirebaseRealtime().child(firebaseAuthClass.firstChild).child(firebaseAuthClass.uidUserAuth ?: "").child("Location").setValue(locationLongLatAddr)
+        FirebaseAuthentication().initFirebaseRealtime().child("UserData").child("Location").child(UidSharePref(activity).getUid() ?: "").setValue(locationLongLatAddr)
             .addOnSuccessListener {
                 Log.d("FirebaseLocationSend", "sendLocation: success")
                 onSuccess()

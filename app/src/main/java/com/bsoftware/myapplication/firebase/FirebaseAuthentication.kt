@@ -5,8 +5,10 @@ import android.content.Context
 import android.util.Log
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
+import com.bsoftware.myapplication.sharepref.UidSharePref
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
@@ -22,7 +24,7 @@ class FirebaseAuthentication {
             field = value
         }
 
-    val firstChild = "UserData"
+    private val firstChild = "UserData"
         get() = field
 
     // init firebase
@@ -53,6 +55,7 @@ class FirebaseAuthentication {
                             Log.d("OnDataUserSaver","Data User Save Successfull : $msg")
                             // in here, we gonna get a data
                             uidUserAuth = initFirebaseAuth().uid
+                            UidSharePref(activity).setUid(uidUserAuth ?: "")
                             getUserInformationUseUid(uidUserAuth,context)
                         }
                         .addOnFailureListener {
@@ -75,20 +78,59 @@ class FirebaseAuthentication {
         activity: Activity,
         onSuccess: () -> Unit = {},
         onFailed: () -> Unit = {},
-        context: Context
-    ){
+        context: Context,
+    ) : String{
+        var message = "Default Message"
         initFirebaseAuth().signInWithEmailAndPassword(email,password)
             .addOnCompleteListener(activity) {task ->
-                // in here we get a data user from UID
-                // get data for use uid
-                getUserInformationUseUid(initFirebaseAuth().uid,context)
-                onSuccess()
+
+                if(task.isSuccessful){
+                    // in here we get a data user from UID
+                    // get data for use uid
+                    getUserInformationUseUid(initFirebaseAuth().uid,context)
+                    UidSharePref(activity).setUid(initFirebaseAuth().uid.toString())
+                    onSuccess()
+                    message = "Login Success"
+                } else {
+                    val exception = task.exception
+                    if(exception is FirebaseAuthInvalidCredentialsException){
+                        when(exception.errorCode){
+                            "ERROR_INVALID_EMAIL" -> {
+                                Log.e("Invalid Email","Invalid User Email")
+                                message = "Invalid User Email"
+                            }
+
+                            "ERROR_WRONG_PASSWORD" -> {
+                                Log.e("Wrong Password","Wrong Password")
+                                message = "Wrong Password"
+                            }
+
+                            "ERROR_USER_NOT_FOUND" -> {
+                                Log.e("User Not Found","User Not Found")
+                                message = "User Not Found"
+                            }
+
+                            else -> {
+                                Log.e("Login Error","Login Error")
+                                message = "Login Error, please contact developer"
+                            }
+                        }
+                    } else {
+                        Log.e("Login Error","Login Error")
+                        message = "Login Error, please contact developer"
+                    }
+
+                    // fail function will be executed
+                    onFailed()
+                }
+
             }
 
-            .addOnFailureListener {e ->
+            return message
+            /*.addOnFailureListener {e ->
+                Log.e("loginUser() Error", "loginUser() Error At : ${e.stackTraceToString()}")
                 onFailed()
-                Log.e("loginUser() Error", "loginUser() Error At : $e")
-            }
+            }*/
     }
 
 

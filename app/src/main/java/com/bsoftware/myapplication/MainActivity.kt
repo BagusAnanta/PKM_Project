@@ -36,6 +36,7 @@ import androidx.core.app.ActivityCompat
 import com.bsoftware.myapplication.dataclass.CreateLocationDataClass
 import com.bsoftware.myapplication.dialogalert.AlertDialogCustome
 import com.bsoftware.myapplication.firebase.FirebaseLocationSend
+import com.bsoftware.myapplication.sharepref.UidSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
@@ -166,7 +167,6 @@ fun PanicButton() {
             onClick = {
                 val intent = Intent(context,UserProfileActivity::class.java)
                 activity.startActivity(intent)
-                activity.finish()
             },
         ) {
             Text(text = "Profile")
@@ -235,6 +235,8 @@ fun PanicButton() {
  }
 
  private fun getLocation(locationResult : LocationResult,context: Context){
+
+     val activity = (context as Activity)
      location = locationResult.lastLocation
 
      Log.d("Location","latitude ${location?.latitude}")
@@ -265,8 +267,8 @@ fun PanicButton() {
      }
 
      // save into firebase realtime database
-     val locationDataClass = CreateLocationDataClass(listOf(latitude,longitude), fetchAddress)
-     FirebaseLocationSend().setLocationSend(locationDataClass)
+     val locationDataClass = CreateLocationDataClass(UidSharePref(activity).getUid() ?: "",listOf(latitude,longitude), fetchAddress)
+     FirebaseLocationSend().setLocationSend(locationDataClass, activity = activity)
  }
 
 fun requestOnGPS(context : Context){
