@@ -171,7 +171,7 @@ import kotlin.NullPointerException
      }
 }
 
-@Composable
+/*@Composable
 fun PanicButton() {
     val context : Context = LocalContext.current
     val activity : Activity = (LocalContext.current as Activity)
@@ -219,9 +219,7 @@ fun PanicButton() {
             }
         )
     }
-    
-
-}
+}*/
 
  /*GPS SECTION
  * This GPS Section, this code contain a private function for gps */
@@ -327,6 +325,8 @@ fun requestOnGPS(context : Context){
 @Composable
 fun BottomBarWithFabDem(){
     val navController = rememberNavController()
+    val context : Context = LocalContext.current
+    var showGPSDialog by remember{ mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -343,17 +343,14 @@ fun BottomBarWithFabDem(){
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    Screen.Panic.route?.let { it1 ->
-                        navController.navigate(it1){
-                            popUpTo(navController.graph.findStartDestination().id){
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                    Screen.Panic.route?.let {
-                        navController.navigate(it)
+                    // if condition, if a gps turn on, init a gps, if not turn on a gps first and run a initgps
+                    val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+                    if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                        // if a gps active we init a gps
+                        initGPS(context)
+                    } else {
+                        showGPSDialog = true
                     }
                 },
                 shape = CircleShape,
@@ -368,6 +365,19 @@ fun BottomBarWithFabDem(){
         MainScreenNav(
             navController = navController,
             modifier = Modifier.padding(it)
+        )
+    }
+
+    if(showGPSDialog){
+        // if a gps no active, we request a gps use AlertDialog for turn on a gps
+        AlertDialogCustome(
+            title = "Perhatian",
+            message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
+            onDismiss =  {false},
+            onAgreeClickButton = {
+                // in here, we gonna turn gps
+                requestOnGPS(context)
+            }
         )
     }
 }
@@ -428,16 +438,12 @@ fun MainScreenNav(navController: NavHostController, modifier: Modifier = Modifie
         // home
         composable(Screen.Home.route){
             // compose function at here
-            MainActivity()
+            ReportForm()
         }
 
         composable(Screen.Profile.route!!){
             // compose function at here
-            UserProfileActivity()
-        }
-
-        composable(Screen.Panic.route!!){
-            PanicButton()
+            UserProfileView()
         }
     }
 }
@@ -446,6 +452,7 @@ fun MainScreenNav(navController: NavHostController, modifier: Modifier = Modifie
 @Composable
 fun MainPreview() {
     MyApplicationTheme {
-        PanicButton()
+        // PanicButton()
+        BottomBarWithFabDem()
     }
 }
