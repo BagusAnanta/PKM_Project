@@ -19,8 +19,23 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +45,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.bsoftware.myapplication.dataclass.CreateLocationDataClass
 import com.bsoftware.myapplication.dialogalert.AlertDialogCustome
 import com.bsoftware.myapplication.firebase.FirebaseLocationSend
+import com.bsoftware.myapplication.sealedclass.Screen
 import com.bsoftware.myapplication.sharepref.UidSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -59,6 +87,11 @@ import kotlin.NullPointerException
  var latitude : Double = 0.0
  var longitude : Double = 0.0
  var fetchAddress : String = ""
+
+ val items = listOf(
+     Screen.Home,
+     Screen.Profile
+ )
 
  class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,7 +140,8 @@ import kotlin.NullPointerException
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PanicButton()
+                    // PanicButton()
+                    BottomBarWithFabDem()
                 }
             }
         }
@@ -290,6 +324,123 @@ fun requestOnGPS(context : Context){
     }
 }
 
+@Composable
+fun BottomBarWithFabDem(){
+    val navController = rememberNavController()
+
+    Scaffold(
+        bottomBar = {
+            BottomAppBar(
+                modifier = Modifier
+                    .height(60.dp)
+               /* cutoutShape = CircleShape,
+                elevation = 22.dp*/
+            ){
+               BottomNav(navController = navController)
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    Screen.Panic.route?.let { it1 ->
+                        navController.navigate(it1){
+                            popUpTo(navController.graph.findStartDestination().id){
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                    Screen.Panic.route?.let {
+                        navController.navigate(it)
+                    }
+                },
+                shape = CircleShape,
+                contentColor = Color.White,
+                modifier = Modifier
+                    .offset(y = 50.dp)
+            ) {
+                Icon(imageVector = Icons.Filled.Warning, contentDescription = "Warning button")
+            }
+        }
+    ){ it ->
+        MainScreenNav(
+            navController = navController,
+            modifier = Modifier.padding(it)
+        )
+    }
+}
+
+@Composable
+fun BottomNav(navController : NavController){
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination
+
+    BottomNavigation(
+        modifier = Modifier
+            .height(100.dp),
+        elevation = 0.dp
+    ){
+        items.forEach {
+            BottomNavigationItem(
+                icon = {
+                    it.icon?.let { icon ->
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = "",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                },
+                label = {
+                    it.title?.let {
+                        Text(
+                            text = it,
+                            fontSize = 12.sp
+                        )
+                    }
+                },
+                selected = currentRoute?.hierarchy?.any { it.route == it.route } == true,
+                selectedContentColor = Color.Blue,
+                unselectedContentColor = Color.White.copy(alpha = 0.4f),
+                onClick = {
+                    it.route?.let{
+                        navController.navigate(it){
+                            popUpTo(navController.graph.findStartDestination().id){
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun MainScreenNav(navController: NavHostController, modifier: Modifier = Modifier){
+
+    NavHost(navController,startDestination = Screen.Home.route!!){
+
+        // home
+        composable(Screen.Home.route){
+            // compose function at here
+            MainActivity()
+        }
+
+        composable(Screen.Profile.route!!){
+            // compose function at here
+            UserProfileActivity()
+        }
+
+        composable(Screen.Panic.route!!){
+            PanicButton()
+        }
+    }
+}
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
