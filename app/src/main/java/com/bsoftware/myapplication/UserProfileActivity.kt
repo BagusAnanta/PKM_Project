@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -25,8 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
@@ -64,7 +67,24 @@ fun UserProfileView() {
         modifier = Modifier
             .padding(10.dp)
     ) {
-        Text(text = "Hello There !")
+        Text(
+            text = "Profile",
+            style = TextStyle(
+                fontWeight = FontWeight.Normal,
+                fontSize = 30.sp
+            )
+        )
+
+        Spacer(modifier = Modifier.padding(top = 5.dp))
+
+        Text(
+            text = getDataUser.fullname,
+            style = TextStyle(
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+        )
+
         Spacer(modifier = Modifier.padding(top = 20.dp))
         // then, we get a data use index access to
         UserProfileViewDataCard(
@@ -76,6 +96,7 @@ fun UserProfileView() {
 @Composable
 fun UserProfileViewDataCard(userData : CreateUserDataClass){
     // content of userdataview such : Idnum, address, phonenum, birthdaydate, email
+    // card profile
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,6 +145,16 @@ fun UserProfileViewDataCard(userData : CreateUserDataClass){
                     .padding(top = 3.dp)
             )
         }
+    }
+
+    Spacer(modifier = Modifier.padding(top = 20.dp))
+    
+    Button(
+        onClick = { /*TODO*/ },
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Text(text = "Logout")
     }
 }
 

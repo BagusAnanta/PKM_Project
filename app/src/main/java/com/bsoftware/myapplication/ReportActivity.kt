@@ -15,7 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -115,14 +118,20 @@ fun ReportForm(modifier : Modifier = Modifier){
                 onValueChange = {reportDate = it},
                 readOnly = true,
                 modifier = Modifier
-                    .clickable {showDialogDate = true}
+                    .clickable { showDialogDate = true }
                     .fillMaxWidth()
                     .width(350.dp),
                 label = {
                     Text("Tanggal Laporan")
                 },
                 shape = RoundedCornerShape(20.dp),
-                enabled = false
+                enabled = false,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Tanggal Kejadian"
+                    )
+                }
             )
 
             if (showDialogDate) {
@@ -136,7 +145,7 @@ fun ReportForm(modifier : Modifier = Modifier){
                 onValueChange = {photo = it},
                 readOnly = true,
                 modifier = Modifier
-                    .clickable {showDialogDate = true}
+                    .clickable { showDialogDate = true }
                     .fillMaxWidth()
                     .width(350.dp),
                 label = {
@@ -146,14 +155,23 @@ fun ReportForm(modifier : Modifier = Modifier){
                 enabled = false,
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Settings,
+                        imageVector = Icons.Default.Add,
                         contentDescription = "Foto Kejadian"
                     )
                 }
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text(text = "Kirim")
+            }
         }
-
-
     }
 }
 
