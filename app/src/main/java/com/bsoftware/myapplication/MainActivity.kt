@@ -278,7 +278,7 @@ fun PanicButton() {
      val latFormat = String.format(Locale.ROOT,"%.6f", location?.latitude)
      val logFormat = String.format(Locale.ROOT,"%.6f", location?.longitude)
 
-     Toast.makeText(context,"Latitude : $latFormat, Longitude : $logFormat",Toast.LENGTH_SHORT).show()
+     //Toast.makeText(context,"Latitude : $latFormat, Longitude : $logFormat",Toast.LENGTH_SHORT).show()
 
      latitude = location?.latitude!!
      longitude = location?.longitude!!
