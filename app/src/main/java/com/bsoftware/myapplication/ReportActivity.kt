@@ -1,22 +1,22 @@
 package com.bsoftware.myapplication
 
 import android.Manifest
-import android.app.Activity
-import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Icon
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,12 +29,10 @@ import androidx.compose.material.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,11 +40,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,20 +52,9 @@ import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 
 class ReportActivity : ComponentActivity() {
 
-    var image_uri: Uri? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        // check camera permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED || checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED
-            ) {
-                val permission = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                requestPermissions(permission, 112)
-            }
-        }
 
         setContent {
             MyApplicationTheme {
@@ -80,22 +65,27 @@ class ReportActivity : ComponentActivity() {
         }
 
     }
+}
 
 
     @Composable
     fun ReportForm(modifier: Modifier = Modifier) {
+        val context : Context = LocalContext.current
+
         var description by remember { mutableStateOf("") }
         var reportDate by remember { mutableStateOf("") }
         var photo by remember { mutableStateOf("") }
 
-        /* val googleFontIcon = FontFamily(
-        Font(
-            googleFont = GoogleFosnt("Material Icons"),
-
-        )
-    )*/
-
         var showDialogDate by remember { mutableStateOf(false) }
+
+        var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+        val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { captureBitmap : Bitmap? ->
+            try{
+                imageBitmap = ImagePreprocessing(context).rotateImage(captureBitmap!!, 90f)
+            } catch (e : NullPointerException) {
+                Log.e("laucherError", e.toString())
+            }
+        }
 
         Column(
             modifier = modifier
@@ -174,7 +164,7 @@ class ReportActivity : ComponentActivity() {
                     modifier = Modifier
                         .clickable {
                             // clickable for photo
-                            openCamera()
+                            launcher.launch(null)
                         }
                         .fillMaxWidth()
                         .width(350.dp),
@@ -205,26 +195,6 @@ class ReportActivity : ComponentActivity() {
         }
     }
 
-    private fun openCamera() {
-        val values: ContentValues = ContentValues()
-        values.put(MediaStore.Images.Media.TITLE, "New Picture")
-        values.put(MediaStore.Images.Media.DESCRIPTION, "From the Camere")
-
-        image_uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri)
-
-        cameraActivityResultLaucher.launch(cameraIntent)
-    }
-
-    private val cameraActivityResultLaucher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK) {
-                val bitmapConverter = ImagePreprocessing(this).convertImageIntoBitmap(image_uri!!)
-                // sent image at here
-            }
-        }
-
 
     @Preview(showBackground = true, showSystemUi = true)
     @Composable
@@ -233,4 +203,3 @@ class ReportActivity : ComponentActivity() {
             ReportForm()
         }
     }
-}

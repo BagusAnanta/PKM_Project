@@ -12,25 +12,20 @@ import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -43,9 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,7 +54,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bsoftware.myapplication.dataclass.CreateLocationDataClass
-import com.bsoftware.myapplication.dialogalert.AlertDialogCustome
+import com.bsoftware.myapplication.dialogalert.AlertDialogCustom
 import com.bsoftware.myapplication.firebase.FirebaseLocationSend
 import com.bsoftware.myapplication.sealedclass.Screen
 import com.bsoftware.myapplication.sharepref.UidSharePref
@@ -108,7 +101,8 @@ import kotlin.NullPointerException
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
-        val locationPermissionRequest = registerForActivityResult(
+        // request permission at here
+        val permissionRequest = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ){ permission ->
             when{
@@ -120,16 +114,26 @@ import kotlin.NullPointerException
                     Log.d("Location Permission", "Only approximate location access granted")
                 }
 
+                permission.getOrDefault(Manifest.permission.CAMERA,false) -> {
+                    Log.d("Camera Permission", "Camera access granted")
+                }
+
+                permission.getOrDefault(Manifest.permission.WRITE_EXTERNAL_STORAGE,false) -> {
+                    Log.d("Storage Permission", "Storage access granted")
+                }
+
                 else -> {
                     Log.d("Location Permission", "Permission Denied")
                 }
             }
         }
 
-        locationPermissionRequest.launch(
+        permissionRequest.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
         )
 
@@ -141,7 +145,7 @@ import kotlin.NullPointerException
                     color = MaterialTheme.colorScheme.background
                 ) {
                     // PanicButton()
-                    BottomBarWithFabDem()
+                    BottomBarWithFloatingButton()
                 }
             }
         }
@@ -170,56 +174,6 @@ import kotlin.NullPointerException
          }
      }
 }
-
-/*@Composable
-fun PanicButton() {
-    val context : Context = LocalContext.current
-    val activity : Activity = (LocalContext.current as Activity)
-    var showGPSDialog by remember{ mutableStateOf(false) }
-
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Button(
-            onClick = {
-                // if condition, if a gps turn on, init a gps, if not turn on a gps first and run a initgps
-                val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                    // if a gps active we init a gps
-                    initGPS(context)
-                } else {
-                    showGPSDialog = true
-                }
-            }
-        ) {
-            Text(text = "Panic Button")
-        }
-
-        Button(
-            onClick = {
-                val intent = Intent(context,UserProfileActivity::class.java)
-                activity.startActivity(intent)
-            },
-        ) {
-            Text(text = "Profile")
-        }
-    }
-
-    if(showGPSDialog){
-        // if a gps no active, we request a gps use AlertDialog for turn on a gps
-        AlertDialogCustome(
-            title = "Perhatian",
-            message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
-            onDismiss =  {false},
-            onAgreeClickButton = {
-                // in here, we gonna turn gps
-                requestOnGPS(context)
-            }
-        )
-    }
-}*/
 
  /*GPS SECTION
  * This GPS Section, this code contain a private function for gps */
@@ -275,8 +229,8 @@ fun PanicButton() {
      Log.d("Location","longitude ${location?.longitude}")
      Log.d("Location","altitude ${location?.altitude}")
 
-     val latFormat = String.format(Locale.ROOT,"%.6f", location?.latitude)
-     val logFormat = String.format(Locale.ROOT,"%.6f", location?.longitude)
+     /*val latFormat = String.format(Locale.ROOT,"%.6f", location?.latitude)
+     val logFormat = String.format(Locale.ROOT,"%.6f", location?.longitude)*/
 
      //Toast.makeText(context,"Latitude : $latFormat, Longitude : $logFormat",Toast.LENGTH_SHORT).show()
 
@@ -323,10 +277,11 @@ fun requestOnGPS(context : Context){
 }
 
 @Composable
-fun BottomBarWithFabDem(){
+fun BottomBarWithFloatingButton(){
     val navController = rememberNavController()
     val context : Context = LocalContext.current
     var showGPSDialog by remember{ mutableStateOf(false) }
+    var showPanicDialog by remember{ mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -349,6 +304,7 @@ fun BottomBarWithFabDem(){
                     if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
                         // if a gps active we init a gps
                         initGPS(context)
+                        showPanicDialog = true
                     } else {
                         showGPSDialog = true
                     }
@@ -370,13 +326,29 @@ fun BottomBarWithFabDem(){
 
     if(showGPSDialog){
         // if a gps no active, we request a gps use AlertDialog for turn on a gps
-        AlertDialogCustome(
+        AlertDialogCustom(
             title = "Perhatian",
             message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
-            onDismiss =  {false},
+            onDismiss =  {
+                showGPSDialog = false
+            },
             onAgreeClickButton = {
                 // in here, we gonna turn gps
                 requestOnGPS(context)
+                showGPSDialog = false
+            }
+        )
+    }
+
+    if(showPanicDialog){
+        AlertDialogCustom(
+            title = "Mohon Tunggu",
+            message = "Petugas Akan Datang Sesuai Lokasi Anda",
+            onDismiss =  {
+                showPanicDialog = false
+            },
+            onAgreeClickButton = {
+                showPanicDialog = false
             }
         )
     }
@@ -453,6 +425,6 @@ fun MainScreenNav(navController: NavHostController, modifier: Modifier = Modifie
 fun MainPreview() {
     MyApplicationTheme {
         // PanicButton()
-        BottomBarWithFabDem()
+        BottomBarWithFloatingButton()
     }
 }

@@ -11,12 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +39,7 @@ class CustomDialog : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AlertDialogCustome()
+                    AlertDialogCustom()
                 }
             }
         }
@@ -50,7 +47,7 @@ class CustomDialog : ComponentActivity() {
 }
 
 @Composable
-fun AlertDialogCustome(
+fun AlertDialogCustom(
     title : String = "Warning",
     message : String = "Example Message In Here",
     onDismiss : (Boolean) -> Unit = {},
@@ -125,6 +122,6 @@ fun AlertDialogCustome(
 @Composable
 fun CustomDialogPreview() {
     MyApplicationTheme {
-        AlertDialogCustome()
+        AlertDialogCustom()
     }
 }
