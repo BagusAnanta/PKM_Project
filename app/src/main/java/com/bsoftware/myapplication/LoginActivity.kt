@@ -40,16 +40,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.sharepref.UserLoginSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
 
 class LoginActivity : ComponentActivity() {
+    private var loginState : Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            UserLoginSharePref(this@LoginActivity).getLoginStatePreference(this@LoginActivity).collect{
+                loginState = it
+            }
+        }
+
         setContent {
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
@@ -59,7 +74,7 @@ class LoginActivity : ComponentActivity() {
                 ) {
                     val context : Context = LocalContext.current
 
-                    if(UserLoginSharePref(this).getStatus()){
+                    if(loginState){
                         // if user done for login (or true login), we gonna intent and get a data
                         val intent = Intent(context,MainActivity::class.java)
                         this.startActivity(intent)
@@ -162,7 +177,11 @@ fun FormLogin(){
                         onSuccess = {
                             activity.startActivity(Intent(context,MainActivity::class.java))
                             activity.finish()
-                            UserLoginSharePref(activity).setStateLogin(true)
+                            //UserLoginSharePref(activity).setStateLogin(true)
+
+                            CoroutineScope(Dispatchers.IO).launch {
+                                UserLoginSharePref(activity).setStateLogin(true)
+                            }
                         },
                         onFailed = {
                             Toast.makeText(context,"Login Fail, Please Try Again", Toast.LENGTH_SHORT).show()
