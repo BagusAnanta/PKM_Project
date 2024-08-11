@@ -55,7 +55,9 @@ class FirebaseAuthentication {
                             Log.d("OnDataUserSaver","Data User Save Successfull : $msg")
                             // in here, we gonna get a data
                             uidUserAuth = initFirebaseAuth().uid
-                            UidSharePref(activity).setUid(uidUserAuth ?: "")
+                            CoroutineScope(Dispatchers.IO).launch {
+                                UidSharePref(activity).setUidPreference(context,uidUserAuth.toString())
+                            }
                             getUserInformationUseUid(uidUserAuth,context)
                         }
                         .addOnFailureListener {
@@ -88,7 +90,9 @@ class FirebaseAuthentication {
                     // in here we get a data user from UID
                     // get data for use uid
                     getUserInformationUseUid(initFirebaseAuth().uid,context)
-                    UidSharePref(activity).setUid(initFirebaseAuth().uid.toString())
+                    CoroutineScope(Dispatchers.IO).launch {
+                        UidSharePref(activity).setUidPreference(context,initFirebaseAuth().uid.toString())
+                    }
                     onSuccess()
                     message = "Login Success"
                 } else {

@@ -9,5 +9,4 @@ data class CreateUserDataClass(
     var email : String = "",
     var birthday : String = "",
     var sex : String = "",
-
 )

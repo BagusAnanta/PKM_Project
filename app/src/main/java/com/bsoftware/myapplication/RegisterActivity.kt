@@ -55,7 +55,11 @@ import androidx.compose.ui.unit.sp
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.dialogalert.DatePickerCustomDialog
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
+import com.bsoftware.myapplication.sharepref.UserLoginSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -288,6 +292,11 @@ fun FormRegister(){
                                 Toast.makeText(context,"Register User Successfull", Toast.LENGTH_SHORT).show()
                                 activity.startActivity(Intent(context,MainActivity::class.java))
                                 activity.finish()
+
+                                // set UserLogin State At here
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    UserLoginSharePref(activity).setStateLogin(true)
+                                }
                             },
                             onFailed = {
                                 Toast.makeText(context,"You Email Already Register", Toast.LENGTH_SHORT).show()
