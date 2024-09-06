@@ -60,9 +60,7 @@ class LoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
-            UserLoginSharePref(this@LoginActivity).getLoginStatePreference(this@LoginActivity).collect{
-                loginState = it
-            }
+            loginState = UserLoginSharePref().getLoginStatePreference(this@LoginActivity)
         }
 
         setContent {
@@ -177,10 +175,9 @@ fun FormLogin(){
                         onSuccess = {
                             activity.startActivity(Intent(context,MainActivity::class.java))
                             activity.finish()
-                            //UserLoginSharePref(activity).setStateLogin(true)
 
                             CoroutineScope(Dispatchers.IO).launch {
-                                UserLoginSharePref(activity).setStateLogin(true)
+                                UserLoginSharePref().setLoginStatePreference(context,true)
                             }
                         },
                         onFailed = {

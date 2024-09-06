@@ -15,14 +15,21 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BottomAppBar
@@ -38,9 +45,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -145,7 +155,8 @@ import kotlin.NullPointerException
                     color = MaterialTheme.colorScheme.background
                 ) {
                     // PanicButton()
-                    BottomBarWithFloatingButton()
+                    // BottomBarWithFloatingButton()
+                    ButtonOption()
                 }
             }
         }
@@ -273,6 +284,92 @@ fun requestOnGPS(context : Context){
             context.startActivity(intent)
         }
         initGPS(context)
+    }
+}
+
+@Composable
+fun ButtonOption(){
+    val context : Context = LocalContext.current
+    var showGPSDialog by remember{ mutableStateOf(false) }
+    var showPanicDialog by remember{ mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = {
+                    val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+                    if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                        // if a gps active we init a gps
+                        initGPS(context)
+                        showPanicDialog = true
+                    } else {
+                        showGPSDialog = true
+                    }
+                },
+                shape = CircleShape,
+                modifier = Modifier.size(120.dp,120.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "Darurat",
+                    style = TextStyle(
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Button(
+                onClick = {
+                    val intent = Intent(context, ReportActivity::class.java)
+                    context.startActivity(intent)
+                },
+                shape = CircleShape,
+                modifier = Modifier
+                    .size(120.dp,120.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Green,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "Laporkan",
+                    style = TextStyle(
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
+    }
+
+    if(showGPSDialog){
+        // if a gps no active, we request a gps use AlertDialog for turn on a gps
+        AlertDialogCustom(
+            title = "Perhatian",
+            message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
+            onDismiss =  {
+                showGPSDialog = false
+            },
+            onAgreeClickButton = {
+                // in here, we gonna turn gps
+                requestOnGPS(context)
+                showGPSDialog = false
+            }
+        )
     }
 }
 
@@ -425,6 +522,7 @@ fun MainScreenNav(navController: NavHostController, modifier: Modifier = Modifie
 fun MainPreview() {
     MyApplicationTheme {
         // PanicButton()
-        BottomBarWithFloatingButton()
+        // BottomBarWithFloatingButton()
+        ButtonOption()
     }
 }

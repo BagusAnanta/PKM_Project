@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.lifecycleScope
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.dialogalert.DatePickerCustomDialog
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
@@ -65,8 +66,10 @@ import java.util.Date
 import java.util.Locale
 
 class RegisterActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
@@ -295,7 +298,7 @@ fun FormRegister(){
 
                                 // set UserLogin State At here
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    UserLoginSharePref(activity).setStateLogin(true)
+                                    UserLoginSharePref().setLoginStatePreference(context,true)
                                 }
                             },
                             onFailed = {
