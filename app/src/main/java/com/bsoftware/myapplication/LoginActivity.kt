@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,8 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,32 +35,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.lifecycleScope
-import com.bsoftware.myapplication.dataclass.CreateUserDataClass
+import androidx.lifecycle.ViewModelProvider
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.sharepref.UserLoginSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import com.bsoftware.myapplication.viewmodel.LoginStateViewModel
+import com.bsoftware.myapplication.viewmodel.viewmodelprovider.LoginViewModelFactory
 
 val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
 
 class LoginActivity : ComponentActivity() {
-    private var loginState : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        lifecycleScope.launch {
-            loginState = UserLoginSharePref().getLoginStatePreference(this@LoginActivity)
-        }
 
         setContent {
             MyApplicationTheme {
@@ -70,18 +59,10 @@ class LoginActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val context : Context = LocalContext.current
+                    val userLoginSharePref = UserLoginSharePref(this)
+                    val viewModel = ViewModelProvider(this,LoginViewModelFactory(userLoginSharePref)).get(LoginStateViewModel::class.java)
 
-                    if(loginState){
-                        // if user done for login (or true login), we gonna intent and get a data
-                        val intent = Intent(context,MainActivity::class.java)
-                        this.startActivity(intent)
-                        this.finish()
-
-                    } else {
-                        // if a user login is false
-                        FormLogin()
-                    }
+                    FormLogin(viewModel)
                 }
             }
         }
@@ -90,11 +71,21 @@ class LoginActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormLogin(){
+fun FormLogin(viewModel : LoginStateViewModel = androidx.lifecycle.viewmodel.compose.viewModel()){
     var email by remember{ mutableStateOf("") }
     var password by remember{ mutableStateOf("") }
     val activity : Activity = (LocalContext.current as Activity)
     val context : Context = LocalContext.current
+
+    val isLogginIn by viewModel.isLoginIn.collectAsState()
+
+    // check login first
+    if(isLogginIn){
+        // if user done for login (or true login), we gonna intent and get a data
+        val intent = Intent(context,MainActivity::class.java)
+        activity.startActivity(intent)
+        activity.finish()
+    }
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -176,9 +167,8 @@ fun FormLogin(){
                             activity.startActivity(Intent(context,MainActivity::class.java))
                             activity.finish()
 
-                            CoroutineScope(Dispatchers.IO).launch {
-                                UserLoginSharePref().setLoginStatePreference(context,true)
-                            }
+                            // set login state to true
+                            viewModel.setLoginState(true)
                         },
                         onFailed = {
                             Toast.makeText(context,"Login Fail, Please Try Again", Toast.LENGTH_SHORT).show()

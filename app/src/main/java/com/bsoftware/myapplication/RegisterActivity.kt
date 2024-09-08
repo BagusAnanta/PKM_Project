@@ -52,12 +52,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
 import com.bsoftware.myapplication.dialogalert.DatePickerCustomDialog
 import com.bsoftware.myapplication.firebase.FirebaseAuthentication
 import com.bsoftware.myapplication.sharepref.UserLoginSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
+import com.bsoftware.myapplication.viewmodel.LoginStateViewModel
+import com.bsoftware.myapplication.viewmodel.viewmodelprovider.LoginViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -77,7 +80,10 @@ class RegisterActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    FormRegister()
+                    val userLoginSharePref = UserLoginSharePref(this)
+                    val viewModel = ViewModelProvider(this, LoginViewModelFactory(userLoginSharePref)).get(LoginStateViewModel::class.java)
+
+                    FormRegister(viewModel)
                 }
             }
         }
@@ -86,7 +92,7 @@ class RegisterActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormRegister(){
+fun FormRegister(viewModel : LoginStateViewModel = androidx.lifecycle.viewmodel.compose.viewModel()){
     var fullName by remember{ mutableStateOf("") }
     var idNumber by remember{ mutableStateOf("") }
     var address by remember{ mutableStateOf("") }
@@ -104,7 +110,6 @@ fun FormRegister(){
     var showDialogDate by remember{ mutableStateOf(false) }
 
     val firebaseAuthentication : FirebaseAuthentication = FirebaseAuthentication()
-
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -297,9 +302,7 @@ fun FormRegister(){
                                 activity.finish()
 
                                 // set UserLogin State At here
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    UserLoginSharePref().setLoginStatePreference(context,true)
-                                }
+                                viewModel.setLoginState(true)
                             },
                             onFailed = {
                                 Toast.makeText(context,"You Email Already Register", Toast.LENGTH_SHORT).show()
