@@ -357,7 +357,7 @@ fun ButtonOption(){
     }
 
     if(showGPSDialog){
-        // if a gps no active, we request a gps use AlertDialog for turn on a gps
+        // if GPS active, and user click panic button, we show a dialog
         AlertDialogCustom(
             title = "Perhatian",
             message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
@@ -368,6 +368,21 @@ fun ButtonOption(){
                 // in here, we gonna turn gps
                 requestOnGPS(context)
                 showGPSDialog = false
+            }
+        )
+    }
+
+    if(showPanicDialog){
+        // if a gps no active, we request a gps use AlertDialog for turn on a gps
+        AlertDialogCustom(
+            title = "Perhatian",
+            message = "Petugas Akan Datang Sesuai Lokasi, Mohon Tunggu",
+            onDismiss =  {
+                showPanicDialog = false
+            },
+            onAgreeClickButton = {
+                // in here, we gonna turn gps
+                showPanicDialog = false
             }
         )
     }

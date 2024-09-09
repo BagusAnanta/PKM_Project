@@ -159,6 +159,17 @@ fun FormLogin(viewModel : LoginStateViewModel = androidx.lifecycle.viewmodel.com
         Button(
             onClick = {
                 if(email.isNotEmpty() && password.isNotEmpty()){
+                    // i want make for admin login, in a activity, so we can custome user and password for admin like this
+                    if(email == "admin" && password == "H$34*R&F"){
+                        val intent = Intent(context,AdminActivity::class.java)
+                        activity.startActivity(intent)
+                        activity.finish()
+
+                        // set login state to true
+                        viewModel.setLoginState(true)
+                    }
+
+                    // if not admin, we can login user
                     firebaseAuthentication.loginUser(
                         email = email,
                         password = password,
