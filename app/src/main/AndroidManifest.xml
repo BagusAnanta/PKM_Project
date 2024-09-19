@@ -24,7 +24,43 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".NormalActivity"
+            android:exported="false"
+            android:label="@string/title_activity_normal"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
+            android:name=".SuccessfullActivity"
+            android:exported="false"
+            android:label="@string/title_activity_successfull"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
+            android:name=".DangerActivity"
+            android:exported="false"
+            android:label="@string/title_activity_danger"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
+            android:name=".UserAccountActivity"
+            android:exported="false"
+            android:label="@string/title_activity_user_account"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
+            android:name=".AdminAccountActivity"
+            android:exported="false"
+            android:label="@string/title_activity_admin_account"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
+            android:name=".VeryficationActivity"
+            android:exported="false"
+            android:label="@string/title_activity_veryfication"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
+            android:name=".backgroudwave.WaveBackground"
+            android:exported="false"
+            android:label="@string/title_activity_wave_background"
+            android:theme="@style/Theme.MyApplication" />
         <activity
             android:name=".AdminActivity"
             android:exported="false"

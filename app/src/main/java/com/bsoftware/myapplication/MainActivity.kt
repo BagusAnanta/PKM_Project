@@ -15,15 +15,20 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigation
@@ -48,7 +53,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -264,8 +271,8 @@ import kotlin.NullPointerException
      }
 
      // save into firebase realtime database
-     val locationDataClass = CreateLocationDataClass(UidSharePref(activity).getUid() ?: "",listOf(latitude,longitude), fetchAddress)
-     FirebaseLocationSend().setLocationSend(locationDataClass, activity = activity)
+     /*val locationDataClass = CreateLocationDataClass(UidSharePref(activity).getUid() ?: "",listOf(latitude,longitude), fetchAddress)
+     FirebaseLocationSend().setLocationSend(locationDataClass, activity = activity)*/
  }
 
 fun requestOnGPS(context : Context){
@@ -293,98 +300,119 @@ fun ButtonOption(){
     var showGPSDialog by remember{ mutableStateOf(false) }
     var showPanicDialog by remember{ mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.background_mainmenu_new),
+            contentDescription = "Background Login",
+            modifier = Modifier.matchParentSize(),
+            contentScale = ContentScale.FillBounds
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Center),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = {
-                    val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-                    if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                        // if a gps active we init a gps
-                        initGPS(context)
-                        showPanicDialog = true
-                    } else {
-                        showGPSDialog = true
-                    }
-                },
-                shape = CircleShape,
-                modifier = Modifier.size(120.dp,120.dp),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Red,
-                    contentColor = Color.White
-                )
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Darurat",
-                    style = TextStyle(
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
+                Button(
+                    onClick = {
+                        val locationManager : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-            Button(
-                onClick = {
-                    val intent = Intent(context, ReportActivity::class.java)
-                    context.startActivity(intent)
-                },
-                shape = CircleShape,
-                modifier = Modifier
-                    .size(120.dp,120.dp),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Green,
-                    contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Laporkan",
-                    style = TextStyle(
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                            // if a gps active we init a gps
+                            initGPS(context)
+                            showPanicDialog = true
+                        } else {
+                            showGPSDialog = true
+                        }
+                    },
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .size(150.dp,150.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Red,
+                        contentColor = Color.White
                     )
-                )
+                ) {
+                    Text(
+                        text = "Darurat",
+                        style = TextStyle(
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 25.sp
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(top = 20.dp))
+
+                Button(
+                    onClick = {
+                        val intent = Intent(context, ReportActivity::class.java)
+                        context.startActivity(intent)
+
+                        /* val intent = Intent(context, RegisterActivity::class.java)
+                         context.startActivity(intent)*/
+
+                        /* val intent = Intent(context, UserProfileActivity::class.java)
+                         context.startActivity(intent)*/
+                    },
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .size(150.dp,150.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Green,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Laporkan",
+                        style = TextStyle(
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 25.sp
+                        )
+                    )
+                }
             }
         }
-    }
 
-    if(showGPSDialog){
-        // if GPS active, and user click panic button, we show a dialog
-        AlertDialogCustom(
-            title = "Perhatian",
-            message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
-            onDismiss =  {
-                showGPSDialog = false
-            },
-            onAgreeClickButton = {
-                // in here, we gonna turn gps
-                requestOnGPS(context)
-                showGPSDialog = false
-            }
-        )
-    }
+        if(showGPSDialog){
+            // if GPS active, and user click panic button, we show a dialog
+            AlertDialogCustom(
+                title = "Perhatian",
+                message = "Untuk Menggunakan Aplikasi,dibutuhkan GPS Apakah anda ingin mengaktifkan GPS ?",
+                onDismiss =  {
+                    showGPSDialog = false
+                },
+                onAgreeClickButton = {
+                    // in here, we gonna turn gps
+                    requestOnGPS(context)
+                    showGPSDialog = false
+                }
+            )
+        }
 
-    if(showPanicDialog){
-        // if a gps no active, we request a gps use AlertDialog for turn on a gps
-        AlertDialogCustom(
-            title = "Perhatian",
-            message = "Petugas Akan Datang Sesuai Lokasi, Mohon Tunggu",
-            onDismiss =  {
-                showPanicDialog = false
-            },
-            onAgreeClickButton = {
-                // in here, we gonna turn gps
-                showPanicDialog = false
-            }
-        )
+        if(showPanicDialog){
+            // if a gps no active, we request a gps use AlertDialog for turn on a gps
+            AlertDialogCustom(
+                title = "Perhatian",
+                message = "Petugas Akan Datang Sesuai Lokasi, Mohon Tunggu",
+                onDismiss =  {
+                    showPanicDialog = false
+                },
+                onAgreeClickButton = {
+                    // in here, we gonna turn gps
+                    showPanicDialog = false
+                }
+            )
+        }
     }
 }
 

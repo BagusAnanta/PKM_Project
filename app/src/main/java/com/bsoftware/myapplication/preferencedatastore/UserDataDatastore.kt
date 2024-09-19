@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
+import com.bsoftware.myapplication.dataclass.UserData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -26,21 +27,21 @@ class UserDataDatastore(private val context : Context) {
     }
 
     // store a data
-    suspend fun storeUserDataProfile(createUserDataClass: CreateUserDataClass){
+    suspend fun storeUserDataProfile(uidUser : String, fullname : String, idNumber : String, address : String, phoneNumber : String, email : String, birthday : String, sex : String){
         context.userDataStore.edit { preference ->
-            preference[USER_UID_KEY] = createUserDataClass.uidUser
-            preference[USER_FULL_NAME] = createUserDataClass.fullname
-            preference[USER_ID_NUMBER] = createUserDataClass.idNumber
-            preference[USER_ADDRESS] = createUserDataClass.address
-            preference[USER_PHONE_NUMBER] = createUserDataClass.phoneNumber
-            preference[USER_EMAIL] = createUserDataClass.email
-            preference[USER_BIRTHDAY] = createUserDataClass.birthday
-            preference[USER_SEX] = createUserDataClass.sex
+            preference[USER_UID_KEY] = uidUser
+            preference[USER_FULL_NAME] = fullname
+            preference[USER_ID_NUMBER] = idNumber
+            preference[USER_ADDRESS] = address
+            preference[USER_PHONE_NUMBER] = phoneNumber
+            preference[USER_EMAIL] = email
+            preference[USER_BIRTHDAY] = birthday
+            preference[USER_SEX] = sex
         }
     }
 
     // get a data
-    val getUserDataProfileFlow : Flow<CreateUserDataClass> = context.userDataStore.data.map {preference ->
+    val getUserDataProfileFlow : Flow<UserData> = context.userDataStore.data.map {preference ->
         val uidUser = preference[USER_UID_KEY] ?: ""
         val fullName = preference[USER_FULL_NAME] ?: ""
         val idUser = preference[USER_ID_NUMBER] ?: ""
@@ -50,7 +51,7 @@ class UserDataDatastore(private val context : Context) {
         val birthdayUser = preference[USER_BIRTHDAY] ?: ""
         val sexUser = preference[USER_SEX] ?: ""
 
-        CreateUserDataClass(uidUser,fullName,idUser,addressUser,phoneNumUser,emailUser,birthdayUser,sexUser)
+        UserData(uidUser,fullName,idUser,addressUser,phoneNumUser,emailUser,birthdayUser,sexUser)
     }
 
 }

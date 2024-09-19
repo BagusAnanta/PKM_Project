@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bsoftware.myapplication.dataclass.CreateUserDataClass
+import com.bsoftware.myapplication.dataclass.UserData
 import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.CoroutineScope
@@ -60,7 +61,7 @@ fun UserProfileView() {
     val context : Context = LocalContext.current
     val userDataStorage = UserDataDatastore(context)
     //get data storage
-    val getDataUser by userDataStorage.getUserDataProfileFlow.collectAsState(initial = CreateUserDataClass())
+    val getDataUser by userDataStorage.getUserDataProfileFlow.collectAsState(initial = UserData())
 
     // view code
     Column(
@@ -77,13 +78,13 @@ fun UserProfileView() {
 
         Spacer(modifier = Modifier.padding(top = 5.dp))
 
-        Text(
+       /* Text(
             text = getDataUser.fullname,
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
-        )
+        )*/
 
         Spacer(modifier = Modifier.padding(top = 20.dp))
         // then, we get a data use index access to
@@ -94,9 +95,9 @@ fun UserProfileView() {
 }
 
 @Composable
-fun UserProfileViewDataCard(userData : CreateUserDataClass){
-    // content of userdataview such : Idnum, address, phonenum, birthdaydate, email
-    // card profile
+fun UserProfileViewDataCard(userData : UserData){
+// content of userdataview such : Idnum, address, phonenum, birthdaydate, email
+// card profile
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,9 +149,11 @@ fun UserProfileViewDataCard(userData : CreateUserDataClass){
     }
 
     Spacer(modifier = Modifier.padding(top = 20.dp))
-    
+
     Button(
-        onClick = { /*TODO*/ },
+        onClick = {
+
+        },
         modifier = Modifier
             .fillMaxWidth()
     ) {

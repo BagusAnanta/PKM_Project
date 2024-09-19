@@ -44,7 +44,7 @@ class FirebaseAuthentication {
         activity : Activity,
         context: Context
     ){
-        initFirebaseAuth().createUserWithEmailAndPassword(userData.email,emailPassword)
+       /* initFirebaseAuth().createUserWithEmailAndPassword(userData.email,emailPassword)
             .addOnCompleteListener(activity) {task ->
                 if(task.isSuccessful){
                     // in here, we gonna save or write DataCheckOut to into realtime database
@@ -71,7 +71,7 @@ class FirebaseAuthentication {
                 onFailed()
                 val exception = task.exception
                 Log.e("CreateDataUser() Exception :", exception.toString())
-            }
+            }*/
     }
 
     fun loginUser(
@@ -157,7 +157,7 @@ class FirebaseAuthentication {
         uidUserData.get().addOnCompleteListener {task ->
             if(task.isSuccessful){
                 val getDataUser = task.result.getValue(CreateUserDataClass::class.java)
-                if (getDataUser != null) {
+                /*if (getDataUser != null) {
                     Log.d("Uid", getDataUser.uidUser)
                     Log.d("Name", getDataUser.fullname)
                     Log.d("IdNum", getDataUser.idNumber)
@@ -182,7 +182,7 @@ class FirebaseAuthentication {
                             )
                         )
                     }
-                }
+                }*/
             }
         }
     }

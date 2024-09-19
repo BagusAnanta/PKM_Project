@@ -7,4 +7,11 @@
     <string name="title_activity_user_profile">UserProfileActivity</string>
     <string name="title_activity_report">ReportActivity</string>
     <string name="title_activity_admin">AdminActivity</string>
+    <string name="title_activity_wave_background">WaveBackground</string>
+    <string name="title_activity_veryfication">VeryficationActivity</string>
+    <string name="title_activity_admin_account">AdminAccountActivity</string>
+    <string name="title_activity_user_account">UserAccountActivity</string>
+    <string name="title_activity_danger">DangerActivity</string>
+    <string name="title_activity_successfull">SuccessfullActivity</string>
+    <string name="title_activity_normal">NormalActivity</string>
 </resources>
