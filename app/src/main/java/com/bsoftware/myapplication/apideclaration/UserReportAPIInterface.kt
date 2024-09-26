@@ -4,6 +4,7 @@ import com.bsoftware.myapplication.dataclass.CreateReportUserDataClass
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -17,12 +18,12 @@ interface UserReportAPIInterface {
 
     @Multipart
     @POST("CreateReportUser.php")
-    fun createReportUser(
+    suspend fun createReportUser(
         @Part("uidUser") uidUser: RequestBody,
         @Part("description") description: RequestBody,
         @Part("reportDate") reportDate: RequestBody,
         @Part image : MultipartBody.Part
-    ) : Call<CreateReportUserDataClass>
+    ) : Response<CreateReportUserDataClass>
 
     @FormUrlEncoded
     @POST("UpdateReportUser.php")

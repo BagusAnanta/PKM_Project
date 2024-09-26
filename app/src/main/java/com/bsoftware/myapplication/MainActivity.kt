@@ -15,6 +15,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +64,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -71,11 +78,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bsoftware.myapplication.dataclass.CreateLocationDataClass
+import com.bsoftware.myapplication.dataclass.LocationData
 import com.bsoftware.myapplication.dialogalert.AlertDialogCustom
 import com.bsoftware.myapplication.firebase.FirebaseLocationSend
+import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
 import com.bsoftware.myapplication.sealedclass.Screen
 import com.bsoftware.myapplication.sharepref.UidSharePref
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
+import com.bsoftware.myapplication.viewmodel.UserLocationViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationCallback
@@ -85,6 +95,11 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.NullPointerException
 
@@ -104,6 +119,7 @@ import kotlin.NullPointerException
  )
 
  class MainActivity : ComponentActivity() {
+     private val locationUpdateViewModel : UserLocationViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -163,7 +179,7 @@ import kotlin.NullPointerException
                 ) {
                     // PanicButton()
                     // BottomBarWithFloatingButton()
-                    ButtonOption()
+                    ButtonOption(this,locationUpdateViewModel)
                 }
             }
         }
@@ -214,13 +230,13 @@ import kotlin.NullPointerException
 
 
 
- private fun initGPS(context: Context){
+ private fun initGPS(context: Context, lifecycleOwner: LifecycleOwner, locationUpdateViewModel: UserLocationViewModel){
      fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
      settingsClient = LocationServices.getSettingsClient(context)
      locationCallback = object : LocationCallback() {
          override fun onLocationResult(locationResult: LocationResult) {
              super.onLocationResult(locationResult)
-             getLocation(locationResult = locationResult,context)
+             getLocation(locationResult = locationResult,context, lifecycleOwner, locationUpdateViewModel)
          }
      }
 
@@ -238,7 +254,9 @@ import kotlin.NullPointerException
      startLocationUpdate(context)
  }
 
- private fun getLocation(locationResult : LocationResult,context: Context){
+ private fun getLocation(locationResult : LocationResult,context: Context, lifecycleOwner : LifecycleOwner, locationUpdateViewModel : UserLocationViewModel){
+
+     var uidUser : String = "AxBCtjd7fsy5fdgat5"
 
      val activity = (context as Activity)
      location = locationResult.lastLocation
@@ -246,11 +264,6 @@ import kotlin.NullPointerException
      Log.d("Location","latitude ${location?.latitude}")
      Log.d("Location","longitude ${location?.longitude}")
      Log.d("Location","altitude ${location?.altitude}")
-
-     /*val latFormat = String.format(Locale.ROOT,"%.6f", location?.latitude)
-     val logFormat = String.format(Locale.ROOT,"%.6f", location?.longitude)*/
-
-     //Toast.makeText(context,"Latitude : $latFormat, Longitude : $logFormat",Toast.LENGTH_SHORT).show()
 
      latitude = location?.latitude!!
      longitude = location?.longitude!!
@@ -270,12 +283,63 @@ import kotlin.NullPointerException
          e.printStackTrace()
      }
 
+     CoroutineScope(Dispatchers.IO).launch {
+         // in here we gonna get UidUser
+         UserDataDatastore(context).getUidUser.collect{
+             uidUser = it
+
+             Log.d("UidUserLocation", uidUser)
+         }
+     }
+
+     // read response for location
+     locationUpdateViewModel.readUserLocationByUid(uidUser)
+     locationUpdateViewModel.response.observe(lifecycleOwner, Observer {
+         if(it.isEmpty()){
+             Log.e("LocationResponse", "Response Empty")
+         } else {
+             it.forEach {data ->
+                 Log.d("StatusCode", data.statusCode)
+                 Log.d("Status", data.status)
+
+                 // set first for Location
+                 locationUpdateViewModel.createUserLocation(
+                     uidUser = uidUser,
+                     longitude = longitude.toString(),
+                     latitude = latitude.toString(),
+                     address = fetchAddress
+                 )
+
+                 val locationTemp : MutableList<LocationData> = mutableListOf(
+                     LocationData(
+                         uidUser = uidUser,
+                         longitude = longitude.toString(),
+                         latitude = latitude.toString(),
+                         address = fetchAddress
+                     )
+                 )
+
+                 locationTemp.forEach { dataTemp ->
+                     if(dataTemp.longitude != longitude.toString() && dataTemp.latitude != latitude.toString() && dataTemp.address != fetchAddress){
+                         // if longitude, latitude, address it's not same like temp, we update
+                         locationUpdateViewModel.updateUserLocation(
+                             uidUser = uidUser,
+                             longitude = longitude.toString(),
+                             latitude = latitude.toString(),
+                             address = fetchAddress
+                         )
+                     }
+                 }
+             }
+         }
+     })
+
      // save into firebase realtime database
      /*val locationDataClass = CreateLocationDataClass(UidSharePref(activity).getUid() ?: "",listOf(latitude,longitude), fetchAddress)
      FirebaseLocationSend().setLocationSend(locationDataClass, activity = activity)*/
  }
 
-fun requestOnGPS(context : Context){
+fun requestOnGPS(context : Context, lifecycleOwner: LifecycleOwner, locationUpdateViewModel: UserLocationViewModel){
     // in here we check a permission again, if a permission granted we turnon a gps
     // check a location
     if(ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
@@ -290,12 +354,12 @@ fun requestOnGPS(context : Context){
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)
         }
-        initGPS(context)
+        initGPS(context,lifecycleOwner,locationUpdateViewModel)
     }
 }
 
 @Composable
-fun ButtonOption(){
+fun ButtonOption(lifecycleOwner: LifecycleOwner,locationUpdateViewModel: UserLocationViewModel){
     val context : Context = LocalContext.current
     var showGPSDialog by remember{ mutableStateOf(false) }
     var showPanicDialog by remember{ mutableStateOf(false) }
@@ -326,7 +390,7 @@ fun ButtonOption(){
 
                         if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
                             // if a gps active we init a gps
-                            initGPS(context)
+                            initGPS(context, lifecycleOwner,locationUpdateViewModel)
                             showPanicDialog = true
                         } else {
                             showGPSDialog = true
@@ -356,12 +420,6 @@ fun ButtonOption(){
                     onClick = {
                         val intent = Intent(context, ReportActivity::class.java)
                         context.startActivity(intent)
-
-                        /* val intent = Intent(context, RegisterActivity::class.java)
-                         context.startActivity(intent)*/
-
-                        /* val intent = Intent(context, UserProfileActivity::class.java)
-                         context.startActivity(intent)*/
                     },
                     shape = CircleShape,
                     modifier = Modifier
@@ -393,7 +451,7 @@ fun ButtonOption(){
                 },
                 onAgreeClickButton = {
                     // in here, we gonna turn gps
-                    requestOnGPS(context)
+                    requestOnGPS(context,lifecycleOwner,locationUpdateViewModel)
                     showGPSDialog = false
                 }
             )
@@ -416,7 +474,7 @@ fun ButtonOption(){
     }
 }
 
-@Composable
+/*@Composable
 fun BottomBarWithFloatingButton(){
     val navController = rememberNavController()
     val context : Context = LocalContext.current
@@ -428,8 +486,8 @@ fun BottomBarWithFloatingButton(){
             BottomAppBar(
                 modifier = Modifier
                     .height(60.dp)
-               /* cutoutShape = CircleShape,
-                elevation = 22.dp*/
+               *//* cutoutShape = CircleShape,
+                elevation = 22.dp*//*
             ){
                BottomNav(navController = navController)
             }
@@ -492,9 +550,9 @@ fun BottomBarWithFloatingButton(){
             }
         )
     }
-}
+}*/
 
-@Composable
+/*@Composable
 fun BottomNav(navController : NavController){
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination
@@ -558,7 +616,7 @@ fun MainScreenNav(navController: NavHostController, modifier: Modifier = Modifie
             UserProfileView()
         }
     }
-}
+}*/
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -566,6 +624,6 @@ fun MainPreview() {
     MyApplicationTheme {
         // PanicButton()
         // BottomBarWithFloatingButton()
-        ButtonOption()
+        // ButtonOption(this)
     }
 }

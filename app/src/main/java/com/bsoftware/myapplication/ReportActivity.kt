@@ -39,6 +39,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,8 +61,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bsoftware.myapplication.createfile.CreateFileFromBitmap
 import com.bsoftware.myapplication.dialogalert.DatePickerCustomDialog
 import com.bsoftware.myapplication.imagepreprocessing.ImagePreprocessing
+import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 import com.bsoftware.myapplication.viewmodel.UserReportViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -92,33 +98,26 @@ class ReportActivity : ComponentActivity() {
         var reportDate by remember { mutableStateOf("") }
         var photo by remember { mutableStateOf("") }
         var photoFile by remember {mutableStateOf<File?>(null)}
+        val getUidUserData by UserDataDatastore(context).getUidUser.collectAsState(initial = "")
 
         var showDialogDate by remember { mutableStateOf(false) }
 
         var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+
         val filePhotoNameFormat = "IMG_$timeStamp.jpg"
-
-        val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, timeStamp)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-        }
-
-        val resolver = context.contentResolver
-        val imageUri : Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
         val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { captureBitmap : Bitmap? ->
             try{
-                imageUri?.let {
-                    resolver.openOutputStream(it).use { outputStream ->
-                        // check at here
-                        imageBitmap = ImagePreprocessing(context).rotateImage(captureBitmap!!, 90f)
-                        photoFile = CreateFileFromBitmap().createFileFromBitmap(imageBitmap!!,imageUri.toString(), filePhotoNameFormat)
-                    }
-                }
+                if(captureBitmap != null){
+                    // imageBitmap = ImagePreprocessing(context).rotateImage(captureBitmap, 90f)
+                   /* photoFile = imageBitmap?.let {
+                        CreateFileFromBitmap().createFileFromBitmap(context,it, filePhotoNameFormat)
+                    }*/
 
+                     photoFile = CreateFileFromBitmap().createFileFromBitmap(context,captureBitmap, filePhotoNameFormat)
+                }
             } catch (e : NullPointerException) {
                 Log.e("laucherError", e.toString())
             }
@@ -204,7 +203,8 @@ class ReportActivity : ComponentActivity() {
                     if (showDialogDate) {
                         DatePickerCustomDialog(
                             onDateSelected = { reportDate = it },
-                            onDismiss = { showDialogDate = false })
+                            onDismiss = { showDialogDate = false }
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -238,10 +238,10 @@ class ReportActivity : ComponentActivity() {
                     Button(
                         onClick = {
                             userReportViewModel.createReportUser(
-                                "Axc12fCb",
+                                getUidUserData,
                                 description,
                                 reportDate,
-                                photoFile!!
+                                photoFile ?: File("")
                             )
                         },
                         modifier = Modifier

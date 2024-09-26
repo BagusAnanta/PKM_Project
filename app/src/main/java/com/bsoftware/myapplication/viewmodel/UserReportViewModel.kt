@@ -8,6 +8,9 @@ import com.bsoftware.myapplication.dataclass.CreateReportUserDataClass
 import com.bsoftware.myapplication.dataclass.CreateStatusDataClass
 import com.bsoftware.myapplication.dataclass.ReportData
 import com.bsoftware.myapplication.retrofit.RetrofitReportUser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -69,69 +72,77 @@ class UserReportViewModel : ViewModel() {
             val requestFile = imageFile.asRequestBody("image/*".toMediaType())
             val imageRequest = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
 
-            RetrofitReportUser.instanceUserReport.createReportUser(uidRequest, descriptionRequest, reportDateRequest, imageRequest).enqueue(object : Callback<CreateReportUserDataClass>{
-                override fun onResponse(
-                    call: Call<CreateReportUserDataClass>,
-                    response: Response<CreateReportUserDataClass>
-                ) {
-                    if(response.isSuccessful){
-                        val apiResponse = response.body()
+           CoroutineScope(Dispatchers.IO).launch {
+               val response = RetrofitReportUser.instanceUserReport.createReportUser(uidRequest, descriptionRequest, reportDateRequest, imageRequest)
 
-                        if(apiResponse?.status == "error" && apiResponse.statusCode == "400"){
-                            _response.value = listOf(
-                                CreateStatusDataClass(
-                                    apiResponse.status,
-                                    apiResponse.statusCode,
-                                    apiResponse.message,
-                                    apiResponse.data.toString()
-                                )
-                            )
-                        } else if(apiResponse?.status == "success" && apiResponse.statusCode == "201"){
-                            _response.value = listOf(
-                                CreateStatusDataClass(
-                                    apiResponse.status,
-                                    apiResponse.statusCode,
-                                    apiResponse.message,
-                                    apiResponse.data.toString()
-                                )
-                            )
-                        } else if(apiResponse?.status == "error" && apiResponse.statusCode == "500"){
-                            _response.value = listOf(
-                                CreateStatusDataClass(
-                                    apiResponse.status,
-                                    apiResponse.statusCode,
-                                    apiResponse.message,
-                                    apiResponse.data.toString()
-                                )
-                            )
-                        } else {
-                            _response.value = listOf(
-                                CreateStatusDataClass(
-                                    apiResponse?.status ?: "",
-                                    apiResponse?.statusCode ?: "",
-                                    apiResponse?.message ?: "",
-                                    apiResponse?.data.toString()
-                                )
-                            )
-                        }
-                    }
-                }
+               if(response.isSuccessful){
+                   Log.d("Create Report User Success: ", response.body().toString())
+                   val apiResponse = response.body()
 
-                override fun onFailure(call: Call<CreateReportUserDataClass>, t: Throwable) {
-                    _response.value = listOf(
-                        CreateStatusDataClass(
-                            "error",
-                            "500",
-                            t.message ?: "",
-                            ""
-                        )
-                    )
-                }
+                   if(apiResponse?.status == "error" && apiResponse.statusCode == "400"){
+                       _response.postValue(
+                           listOf(
+                               CreateStatusDataClass(
+                                   apiResponse.status,
+                                   apiResponse.statusCode,
+                                   apiResponse.message,
+                                   apiResponse.data.toString()
+                               )
+                       )
+                       )
+                   } else if(apiResponse?.status == "success" && apiResponse.statusCode == "201"){
+                       _response.postValue(
+                           listOf(
+                               CreateStatusDataClass(
+                                   apiResponse.status,
+                                   apiResponse.statusCode,
+                                   apiResponse.message,
+                                   apiResponse.data.toString()
+                               )
+                           )
+                       )
+                   } else if(apiResponse?.status == "error" && apiResponse.statusCode == "500"){
+                       _response.postValue(
+                           listOf(
+                               CreateStatusDataClass(
+                                   apiResponse.status,
+                                   apiResponse.statusCode,
+                                   apiResponse.message,
+                                   apiResponse.data.toString()
+                               )
+                           )
+                       )
+                   } else {
+                       _response.postValue(
+                           listOf(
+                               CreateStatusDataClass(
+                                   apiResponse?.status ?: "",
+                                   apiResponse?.statusCode ?: "",
+                                   apiResponse?.message ?: "",
+                                   apiResponse?.data.toString()
+                               )
+                           )
+                       )
+                   }
+               } else {
+                   Log.e("Create Report User Error: ", response.message())
+                   Log.e("Create Report User Error: ", response.body()?.statusCode!!)
+               }
 
-            })
+           }
         } catch (e : Exception){
-            Log.e("Create Report User Error: ", e.toString())
+            Log.e("Exception Create Report User Error: ", e.toString())
+            Log.e("Exception Create Report User Error: ",  _response.postValue(
+                listOf(
+                    CreateStatusDataClass(
+                        "error Exception",
+                        "500",
+                        e.toString()
+                    )
+                )
+            ).toString())
         }
+
     }
 
     /*fun updateReportUser(uidUser : String, description : String, reportDate : String, imageUrl : String){

@@ -54,4 +54,8 @@ class UserDataDatastore(private val context : Context) {
         UserData(uidUser,fullName,idUser,addressUser,phoneNumUser,emailUser,birthdayUser,sexUser)
     }
 
+    val getUidUser : Flow<String> = context.userDataStore.data.map {preference ->
+        preference[USER_UID_KEY] ?: ""
+    }
+
 }

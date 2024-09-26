@@ -54,6 +54,49 @@ class UserLocationViewModel : ViewModel(){
         }
     }
 
+    fun readUserLocationByUid(userUid : String){
+        try{
+            RetrofitUserLocation.instanceUserLocation.getUserLocationByUid(userUid).enqueue(object : Callback<CreateLocationDataClass>{
+                override fun onResponse(
+                    call: Call<CreateLocationDataClass>,
+                    response: Response<CreateLocationDataClass>
+                ) {
+                    _userLocationData.value = response.body()?.data
+                    _response.value = listOf(
+                        CreateStatusDataClass(
+                            response.body()?.status ?: "",
+                            response.body()?.statusCode ?: "",
+                            response.body()?.message ?: "",
+                            response.body()?.data.toString()
+                        )
+                    )
+
+                    Log.d("Read UserLocation By Uid: ", response.body()?.data.toString() ?: "")
+                    Log.d("Response StatusCode Read UserLocation By Uid: ", response.body()?.statusCode ?: "")
+                    Log.d("Response Status Read UserLocation By Uid: ", response.body()?.status ?: "")
+                    Log.d("Response Message Read UserLocation By Uid: ", response.body()?.message ?: "")
+                }
+
+                override fun onFailure(call: Call<CreateLocationDataClass>, t: Throwable) {
+                    _response.value = listOf(
+                        CreateStatusDataClass(
+                            "error",
+                            "500",
+                            t.message ?: "",
+                            ""
+                        )
+                    )
+
+                    Log.e("Read UserLocation By Uid Error: ", t.message ?: "")
+                }
+
+            })
+        } catch (e : Exception){
+            Log.e("Read UserLocation Error: ", e.toString())
+        }
+    }
+
+
     fun createUserLocation(uidUser : String,longitude : String, latitude : String, address : String){
         try{
             RetrofitUserLocation.instanceUserLocation.createDataLocation(uidUser, longitude, latitude, address).enqueue(object : Callback<CreateLocationDataClass>{

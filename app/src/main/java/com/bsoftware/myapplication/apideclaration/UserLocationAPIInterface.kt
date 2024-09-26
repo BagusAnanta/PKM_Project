@@ -12,6 +12,12 @@ interface UserLocationAPIInterface {
     fun getUserLocation(): Call<CreateLocationDataClass>
 
     @FormUrlEncoded
+    @POST("ReadUserLocationByUid.php")
+    fun getUserLocationByUid(
+        @Field("uidUser") uidUser: String = ""
+    ) : Call<CreateLocationDataClass>
+
+    @FormUrlEncoded
     @POST("CreateUserLocation.php")
     fun createDataLocation(
         @Field("uidUser") uidUser: String = "",
