@@ -332,15 +332,18 @@ fun FormRegister(
                                 while(!success){
                                     try {
                                         userDataViewModel.createUserData(
-                                            generateId,
-                                            fullName,
-                                            idNumber,
-                                            address,
-                                            phoneNum,
-                                            email,
-                                            birthDay,
-                                            selectedSex,
-                                            cryptPassword.hashPassword(password)
+                                            id = generateId,
+                                            name = fullName,
+                                            email = email,
+                                            nohp = phoneNum,
+                                            alamat = address,
+                                            verified_at = "timestamp at here",
+                                            token = "",
+                                            is_admin = "0",
+                                            password = cryptPassword.hashPassword(password),
+                                            remember_token = "",
+                                            created_at = "",
+                                            updated_at = ""
                                         )
                                     } catch (e : Exception){
                                         Log.e("Create User Data Response", e.message.toString())

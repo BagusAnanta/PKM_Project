@@ -11,13 +11,16 @@ data class CreateUserDataClass(
 ) : java.io.Serializable
 
 data class UserData(
-    @SerializedName("uidUser") var uidUser : String = "",
-    @SerializedName("fullname") var fullname : String = "",
-    @SerializedName("idNumber") var idNumber : String = "",
-    @SerializedName("address") var address : String = "",
-    @SerializedName("phoneNumber") var phoneNumber : String = "",
+    @SerializedName("id") var id : String = "",
+    @SerializedName("name") var name : String = "",
     @SerializedName("email") var email : String = "",
-    @SerializedName("birthday") var birthday : String = "",
-    @SerializedName("sex") var sex : String = "",
-    @SerializedName("password") var password : String = ""
+    @SerializedName("nohp") var nohp : String = "",
+    @SerializedName("alamat") var alamat : String = "",
+    @SerializedName("verified_at") var verified_at : String = "",
+    @SerializedName("token") var token : String = "",
+    @SerializedName("is_admin") var is_admin : String = "",
+    @SerializedName("password") var password : String = "",
+    @SerializedName("remember_token") var remember_token : String = "",
+    @SerializedName("created_at") var created_at : String = "",
+    @SerializedName("updated_at") var updated_at : String = ""
 )

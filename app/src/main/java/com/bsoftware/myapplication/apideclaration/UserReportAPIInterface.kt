@@ -18,12 +18,12 @@ interface UserReportAPIInterface {
 
     @Multipart
     @POST("CreateReportUser.php")
-    suspend fun createReportUser(
+    fun createReportUser(
         @Part("uidUser") uidUser: RequestBody,
         @Part("description") description: RequestBody,
         @Part("reportDate") reportDate: RequestBody,
-        @Part image : MultipartBody.Part
-    ) : Response<CreateReportUserDataClass>
+        @Part photo : MultipartBody.Part
+    ) : Call<CreateReportUserDataClass>
 
     @FormUrlEncoded
     @POST("UpdateReportUser.php")

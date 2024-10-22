@@ -63,9 +63,9 @@ class UserDataViewModel : ViewModel() {
         }
     }
 
-    fun readUserDataByID(uid : String){
+    fun readUserDataByID(id : String){
         try{
-            RetrofitUserData.instanceUserData.getDataUserById(uid).enqueue(object : Callback<CreateUserDataClass>{
+            RetrofitUserData.instanceUserData.getDataUserById(id).enqueue(object : Callback<CreateUserDataClass>{
                 override fun onResponse(
                     call: Call<CreateUserDataClass>,
                     response: Response<CreateUserDataClass>
@@ -98,9 +98,10 @@ class UserDataViewModel : ViewModel() {
         }
     }
 
-    fun createUserData(uidUser : String, fullname : String, idNumber : String, address : String, phoneNumber : String, email : String, birthday : String, sex : String, password : String){
+    // TODO: change this with true field
+    fun createUserData(id : String, name : String, email : String, nohp : String, alamat : String, verified_at : String, token : String, is_admin : String, password : String, remember_token : String, created_at : String, updated_at : String){
         try{
-            RetrofitUserData.instanceUserData.createDataUser(uidUser, fullname, idNumber, address, phoneNumber, email, birthday, sex, password).enqueue(object : Callback<CreateUserDataClass> {
+            RetrofitUserData.instanceUserData.createDataUser(id,name, email, nohp, alamat, verified_at, token, is_admin, password, remember_token, created_at, updated_at).enqueue(object : Callback<CreateUserDataClass> {
                 override fun onResponse(
                     call: Call<CreateUserDataClass>,
                     response: Response<CreateUserDataClass>
@@ -169,9 +170,10 @@ class UserDataViewModel : ViewModel() {
         }
     }
 
-    fun updateUserData(uidUser : String, fullname : String, idNumber : String, address : String, phoneNumber : String, email : String, birthday : String, sex : String, password : String) {
+    // TODO: change this with true field
+    fun updateUserData(id : String, name : String, email : String, nohp : String, alamat : String, verified_at : String, token : String, is_admin : String, password : String, remember_token : String, created_at : String, updated_at : String) {
        try {
-           RetrofitUserData.instanceUserData.updateDataUser(uidUser, fullname, idNumber, address, phoneNumber, email, birthday, sex, password).enqueue(object : Callback<CreateUserDataClass> {
+           RetrofitUserData.instanceUserData.updateDataUser(id,name, email, nohp, alamat, verified_at, token, is_admin, password, remember_token, created_at, updated_at).enqueue(object : Callback<CreateUserDataClass> {
                override fun onResponse(
                    call: Call<CreateUserDataClass>,
                    response: Response<CreateUserDataClass>
@@ -203,9 +205,9 @@ class UserDataViewModel : ViewModel() {
        }
     }
 
-    fun deleteUserData(uid : String){
+    fun deleteUserData(id : String){
        try {
-           RetrofitUserData.instanceUserData.deleteDataUser(uid).enqueue(object : Callback<CreateUserDataClass> {
+           RetrofitUserData.instanceUserData.deleteDataUser(id).enqueue(object : Callback<CreateUserDataClass> {
                override fun onResponse(
                    call: Call<CreateUserDataClass>,
                    response: Response<CreateUserDataClass>

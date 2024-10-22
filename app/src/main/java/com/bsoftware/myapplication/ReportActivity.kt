@@ -1,6 +1,7 @@
 package com.bsoftware.myapplication
 
 import android.Manifest
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -59,14 +60,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bsoftware.myapplication.createfile.CreateFileFromBitmap
+import com.bsoftware.myapplication.dialogalert.AlertDialogCustom
 import com.bsoftware.myapplication.dialogalert.DatePickerCustomDialog
 import com.bsoftware.myapplication.imagepreprocessing.ImagePreprocessing
 import com.bsoftware.myapplication.preferencedatastore.UserDataDatastore
 import com.bsoftware.myapplication.ui.theme.MyApplicationTheme
 import com.bsoftware.myapplication.viewmodel.UserReportViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -93,16 +92,16 @@ class ReportActivity : ComponentActivity() {
     @Composable
     fun ReportForm(modifier: Modifier = Modifier, userReportViewModel : UserReportViewModel = viewModel()) {
         val context : Context = LocalContext.current
+        val activity = (context as Activity)
 
         var description by remember { mutableStateOf("") }
         var reportDate by remember { mutableStateOf("") }
         var photo by remember { mutableStateOf("") }
         var photoFile by remember {mutableStateOf<File?>(null)}
+        var sendAlert by remember {mutableStateOf(false)}
         val getUidUserData by UserDataDatastore(context).getUidUser.collectAsState(initial = "")
 
         var showDialogDate by remember { mutableStateOf(false) }
-
-        var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
 
@@ -111,12 +110,14 @@ class ReportActivity : ComponentActivity() {
         val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { captureBitmap : Bitmap? ->
             try{
                 if(captureBitmap != null){
-                    // imageBitmap = ImagePreprocessing(context).rotateImage(captureBitmap, 90f)
-                   /* photoFile = imageBitmap?.let {
-                        CreateFileFromBitmap().createFileFromBitmap(context,it, filePhotoNameFormat)
-                    }*/
+                   val file = CreateFileFromBitmap().testCreateFileFromBitmap(context, captureBitmap, filePhotoNameFormat)
+                   photoFile = file
 
-                     photoFile = CreateFileFromBitmap().createFileFromBitmap(context,captureBitmap, filePhotoNameFormat)
+                    if(file != null && file.exists()){
+                        Log.d("laucherSuccess", "File Saved at : ${file.absolutePath}")
+                    } else {
+                        Log.d("laucherError", "File Not Create")
+                    }
                 }
             } catch (e : NullPointerException) {
                 Log.e("laucherError", e.toString())
@@ -237,11 +238,13 @@ class ReportActivity : ComponentActivity() {
 
                     Button(
                         onClick = {
+                            sendAlert = true
+                            // place Safe data at here to send to API
                             userReportViewModel.createReportUser(
                                 getUidUserData,
                                 description,
                                 reportDate,
-                                photoFile ?: File("")
+                                photoFile!!
                             )
                         },
                         modifier = Modifier
@@ -260,6 +263,27 @@ class ReportActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+
+        if(sendAlert){
+            AlertDialogCustom(
+                title = "Terima Kasih",
+                message = "Laporan Anda Telah Dikirim, pihak KPAD akan mengurus laporan ada",
+                onDismiss =  {
+                    val intent = Intent(context, MainActivity::class.java)
+                    activity.startActivity(intent)
+                    activity.finish()
+
+                    sendAlert = false
+                },
+                onAgreeClickButton = {
+                    val intent = Intent(context, MainActivity::class.java)
+                    activity.startActivity(intent)
+                    activity.finish()
+
+                    sendAlert = false
+                }
+            )
         }
     }
 

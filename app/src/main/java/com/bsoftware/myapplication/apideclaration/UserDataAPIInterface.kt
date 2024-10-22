@@ -20,35 +20,41 @@ interface UserDataAPIInterface {
     // read more data from server using ID
     @GET("ReadUserDataByUid.php")
     fun getDataUserById(
-        @Field("uidUser") uidUser : String
+        @Field("id") id : String
     ) : Call<CreateUserDataClass>
 
     @FormUrlEncoded
     @POST("CreateUserData.php")
     fun createDataUser(
-        @Field("uidUser") uidUser : String = "",
-        @Field("fullname") fullname : String = "",
-        @Field("idNumber") idNumber : String = "",
-        @Field("address") address : String = "",
-        @Field("phoneNumber") phoneNumber : String = "",
+        @Field("id") id : String = "",
+        @Field("name") name : String = "",
         @Field("email") email : String = "",
-        @Field("birthday") birthday : String = "",
-        @Field("sex") sex : String = "",
-        @Field("password") password : String = ""
+        @Field("nohp") nohp : String = "",
+        @Field("alamat") alamat : String = "",
+        @Field("verified_at") verified_at : String = "",
+        @Field("token") token : String = "",
+        @Field("is_admin") is_admin : String = "",
+        @Field("password") password : String = "",
+        @Field("remember_token") remember_token : String = "",
+        @Field("created_at") created_at : String = "",
+        @Field("updated_at") updated_at : String = ""
     ) : Call<CreateUserDataClass>
 
     @FormUrlEncoded
     @POST("UpdateUserData.php")
     fun updateDataUser(
-        @Field("uidUser") uidUser : String = "",
-        @Field("fullname") fullname : String = "",
-        @Field("idNumber") idNumber : String = "",
-        @Field("address") address : String = "",
-        @Field("phoneNumber") phoneNumber : String = "",
+        @Field("id") id : String = "",
+        @Field("name") name : String = "",
         @Field("email") email : String = "",
-        @Field("birthday") birthday : String = "",
-        @Field("sex") sex : String = "",
-        @Field("password") password : String = ""
+        @Field("nohp") nohp : String = "",
+        @Field("alamat") alamat : String = "",
+        @Field("verified_at") verified_at : String = "",
+        @Field("token") token : String = "",
+        @Field("is_admin") is_admin : String = "",
+        @Field("password") password : String = "",
+        @Field("remember_token") remember_token : String = "",
+        @Field("created_at") created_at : String = "",
+        @Field("updated_at") updated_at : String = ""
     ) : Call<CreateUserDataClass>
 
     @POST("DeleteUserData.php")
