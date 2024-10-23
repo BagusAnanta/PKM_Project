@@ -92,15 +92,18 @@ fun FormLogin(
 ){
     var email by remember{ mutableStateOf("") }
     var password by remember{ mutableStateOf("") }
+    var getId by remember{ mutableStateOf("") }
+    var getName by remember{ mutableStateOf("") }
     var getEmail by remember{ mutableStateOf("") }
-    var getPassword by remember{ mutableStateOf("") }
-    var getUid by remember{ mutableStateOf("") }
-    var getFullName by remember { mutableStateOf("") }
-    var getIdNumber by remember { mutableStateOf("") }
+    var getPhoneNum by remember { mutableStateOf("") }
     var getAddress by remember { mutableStateOf("") }
-    var getPhoneNumber by remember { mutableStateOf("") }
-    var getBirthday by remember { mutableStateOf("") }
-    var getSex by remember { mutableStateOf("") }
+    var getVerifiedAt by remember { mutableStateOf("") }
+    var getToken by remember { mutableStateOf("") }
+    var getIsAdmin by remember { mutableStateOf("") }
+    var getPassword by remember { mutableStateOf("") }
+    var getRememberToken by remember { mutableStateOf("") }
+    var getCreateAt by remember { mutableStateOf("") }
+    var getUpdateAt by remember { mutableStateOf("") }
     val activity : Activity = (LocalContext.current as Activity)
     val context : Context = LocalContext.current
 
@@ -219,15 +222,18 @@ fun FormLogin(
                                 userDataViewModel.readUserData(email)
                                 try{
                                     dataUser.forEach{ data ->
-                                        getUid = data.uidUser
-                                        getFullName = data.fullname
-                                        getIdNumber = data.idNumber
-                                        getAddress = data.address
-                                        getPhoneNumber = data.phoneNumber
+                                        getId = data.id
+                                        getName = data.name
                                         getEmail = data.email
-                                        getBirthday = data.birthday
-                                        getSex = data.sex
+                                        getPhoneNum = data.nohp
+                                        getAddress = data.alamat
+                                        getVerifiedAt = data.verified_at
+                                        getToken = data.token
+                                        getIsAdmin = data.is_admin
                                         getPassword = data.password
+                                        getRememberToken = data.remember_token
+                                        getCreateAt = data.created_at
+                                        getUpdateAt = data.updated_at
                                     }
                                 } catch (e : NullPointerException){
                                     Log.e("error", e.message.toString())
@@ -249,14 +255,17 @@ fun FormLogin(
 
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     UserDataDatastore(context).storeUserDataProfile(
-                                                        getUid,
-                                                        getFullName,
-                                                        getIdNumber,
-                                                        getAddress,
-                                                        getPhoneNumber,
-                                                        getEmail,
-                                                        getBirthday,
-                                                        getSex
+                                                        id = getId,
+                                                        name = getName,
+                                                        email = getEmail,
+                                                        phoneNumber = getPhoneNum,
+                                                        address = getAddress,
+                                                        verifiedAt = getVerifiedAt,
+                                                        token = getToken,
+                                                        isAdmin = getIsAdmin,
+                                                        rememberToken = getRememberToken,
+                                                        createdAt = getCreateAt,
+                                                        updatedAt = getUpdateAt
                                                     )
                                                 }
 
@@ -315,7 +324,7 @@ fun FormLogin(
                         }
 
                         // i want make for admin login, in a activity, so we can custome user and password for admin like this
-                        if(email == "admin" && password == "admin"){
+                        if(getIsAdmin.equals("1")){
                             val intent = Intent(context,AdminActivity::class.java)
                             activity.startActivity(intent)
                             activity.finish()

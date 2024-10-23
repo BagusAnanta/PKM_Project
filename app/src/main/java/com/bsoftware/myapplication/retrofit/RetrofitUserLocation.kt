@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitUserLocation {
     val instanceUserLocation : UserLocationAPIInterface by lazy {
         val retrofitUserLocationInit = Retrofit.Builder()
-            .baseUrl("http://192.168.100.109/Siduka/UserLocation/")
+            .baseUrl("http://192.168.100.11/Siduka/UserLocation/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
