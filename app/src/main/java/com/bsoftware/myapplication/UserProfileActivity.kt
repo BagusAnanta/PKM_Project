@@ -113,28 +113,28 @@ fun UserProfileViewDataCard(userData : UserData){
         ) {
             // Idnumber
             Text(
-                text = userData.idNumber,
+                text = "Test",
                 modifier = Modifier
                     .padding(top = 3.dp)
             )
 
             // Address
             Text(
-                text = userData.address,
+                text = "Test",
                 modifier = Modifier
                     .padding(top = 3.dp)
             )
 
             // Phonenum
             Text(
-                text = userData.phoneNumber,
+                text = "Test",
                 modifier = Modifier
                     .padding(top = 3.dp)
             )
 
             // Bithday date
             Text(
-                text = userData.birthday,
+                text = "Test",
                 modifier = Modifier
                     .padding(top = 3.dp)
             )

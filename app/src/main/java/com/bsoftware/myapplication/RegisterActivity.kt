@@ -119,6 +119,20 @@ fun FormRegister(
     var password by remember{ mutableStateOf("") }
     var birthDay by remember{ mutableStateOf("Tanggal Lahir") }
 
+
+    /*var getId by remember{ mutableStateOf("") }
+    var getName by remember{ mutableStateOf("") }
+    var getEmail by remember{ mutableStateOf("") }
+    var getPhoneNum by remember { mutableStateOf("") }
+    var getAddress by remember { mutableStateOf("") }
+    var getVerifiedAt by remember { mutableStateOf("") }
+    var getToken by remember { mutableStateOf("") }
+    var getIsAdmin by remember { mutableStateOf("") }
+    var getPassword by remember { mutableStateOf("") }
+    var getRememberToken by remember { mutableStateOf("") }
+    var getCreateAt by remember { mutableStateOf("") }
+    var getUpdateAt by remember { mutableStateOf("") }*/
+
     val context : Context = LocalContext.current
     val activity : Activity = (LocalContext.current as Activity)
     val sexList = arrayOf("Laki-laki","Perempuan")
@@ -363,14 +377,17 @@ fun FormRegister(
                                                 // Store data at datastore
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     UserDataDatastore(context).storeUserDataProfile(
-                                                        generateId,
-                                                        fullName,
-                                                        idNumber,
-                                                        address,
-                                                        phoneNum,
-                                                        email,
-                                                        birthDay,
-                                                        selectedSex
+                                                        id = generateId,
+                                                        name = fullName,
+                                                        email = email,
+                                                        phoneNumber = phoneNum,
+                                                        address = address,
+                                                        verifiedAt = "timestamp at here",
+                                                        token = "",
+                                                        isAdmin = "0",
+                                                        rememberToken = "",
+                                                        createdAt = "",
+                                                        updatedAt = ""
                                                     )
                                                 }
 

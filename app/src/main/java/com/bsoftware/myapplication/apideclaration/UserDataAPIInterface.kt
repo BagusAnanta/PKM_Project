@@ -18,7 +18,7 @@ interface UserDataAPIInterface {
     ): Call<CreateUserDataClass>
 
     // read more data from server using ID
-    @GET("ReadUserDataByUid.php")
+//    @GET("ReadUserDataByUid.php")/*?*/
     fun getDataUserById(
         @Field("id") id : String
     ) : Call<CreateUserDataClass>
