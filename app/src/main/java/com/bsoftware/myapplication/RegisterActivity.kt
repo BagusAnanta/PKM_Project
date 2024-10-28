@@ -79,6 +79,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -151,6 +153,11 @@ fun FormRegister(
     var job : Job? = null
 
     var showLoading by remember { mutableStateOf(false) }
+
+    val date : LocalDate? = LocalDate.now()
+    val dateTimeFormat = date?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    val dateFormatter = LocalDate.parse(dateTimeFormat)
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -346,7 +353,7 @@ fun FormRegister(
                                 while(!success){
                                     try {
                                         userDataViewModel.createUserData(
-                                            id = generateId,
+                                            id = "",
                                             name = fullName,
                                             email = email,
                                             nohp = phoneNum,
@@ -356,8 +363,8 @@ fun FormRegister(
                                             is_admin = "0",
                                             password = cryptPassword.hashPassword(password),
                                             remember_token = "",
-                                            created_at = "",
-                                            updated_at = ""
+                                            created_at = dateFormatter.toString(),
+                                            updated_at = dateFormatter.toString()
                                         )
                                     } catch (e : Exception){
                                         Log.e("Create User Data Response", e.message.toString())
@@ -377,7 +384,7 @@ fun FormRegister(
                                                 // Store data at datastore
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     UserDataDatastore(context).storeUserDataProfile(
-                                                        id = generateId,
+                                                        id = "",
                                                         name = fullName,
                                                         email = email,
                                                         phoneNumber = phoneNum,

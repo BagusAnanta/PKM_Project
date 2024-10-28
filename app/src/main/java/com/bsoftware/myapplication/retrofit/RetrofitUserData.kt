@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitUserData {
     val instanceUserData : UserDataAPIInterface by lazy {
         val retrofitUserDataInit =  Retrofit.Builder()
-            .baseUrl("http://192.168.100.11/Siduka/UserData/")
+            .baseUrl("https://api.kpadsumsel.or.id/UserData/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
